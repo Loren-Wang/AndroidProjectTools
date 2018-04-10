@@ -437,7 +437,7 @@ public class BlueToothUtils {
             BluetoothGattCharacteristic characteristic = getBTGattCharForUUid(bluetoothGatt, uuidStr);
             if (characteristic != null) {
                 characteristic.setValue(hexStr2Bytes(optValue));
-                bluetoothGatt.readCharacteristic(characteristic);
+                bluetoothGatt.writeCharacteristic(characteristic);
             }
         }
     }
