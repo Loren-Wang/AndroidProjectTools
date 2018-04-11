@@ -13,12 +13,12 @@ import android.text.TextUtils;
 
 import com.adnroidprojecttools.blueToothOptions.BlueToothOptionUtils;
 import com.adnroidprojecttools.blueToothOptions.BlueToothOptionsCallback;
-import com.adnroidprojecttools.common.DigitalTransUtils;
 import com.adnroidprojecttools.common.LogUtils;
 import com.adnroidprojecttools.common.Setting;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -63,6 +63,8 @@ public class MainActivity extends AppCompatActivity {
         }
         try {//只要有一个权限不通过则都失败
             if(failPermissionList.size() == 0){
+                final UUID serviceUUid = CarAirBlueToothInfo.getInstance().paramUUid("0001");
+                final UUID characteristicUUid = CarAirBlueToothInfo.getInstance().paramUUid("0003");
                 BlueToothOptionUtils.getInstance().setBlueToothOptionsCallback(new BlueToothOptionsCallback() {
                     @Override
                     protected void connectBTDeviceSuccess(BluetoothGatt bluetoothGatt) {
@@ -86,7 +88,8 @@ public class MainActivity extends AppCompatActivity {
 
                     @Override
                     protected boolean scanResultJudge(BluetoothDevice bluetoothDevice) {
-                        if(!TextUtils.isEmpty(bluetoothDevice.getName()) && bluetoothDevice.getName().contains("MI1S")){
+                        if(!TextUtils.isEmpty(bluetoothDevice.getAddress()) &&
+                                bluetoothDevice.getAddress().substring(0,8).equals("F9:CA:06")){
                             BlueToothOptionUtils.getInstance().connectBTClose(bluetoothDevice).connectBTDevice(bluetoothDevice);
                             BlueToothOptionUtils.getInstance().stopScan();
                             return true;
@@ -109,8 +112,8 @@ public class MainActivity extends AppCompatActivity {
 
                     @Override
                     protected void allowSenOrderToBTDevice(BluetoothGatt bluetoothGatt) {
-                        BlueToothOptionUtils.getInstance().sendOrderToBTDevice(bluetoothGatt,"00002a06-0000-1000-8000-00805f9b34fb"
-                                , DigitalTransUtils.getInstance().hex2byte("02"));
+                        BlueToothOptionUtils.getInstance().sendOrderToBTDeviceWrite(bluetoothGatt,serviceUUid,characteristicUUid
+                                , new byte[]{55,1,1,2});
 
                     }
                 }).enableBlueTooth().startScan();

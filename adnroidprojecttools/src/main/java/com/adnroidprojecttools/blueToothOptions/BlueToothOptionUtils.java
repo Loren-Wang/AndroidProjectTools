@@ -14,6 +14,7 @@ import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.os.Handler;
 import android.os.Message;
+import android.support.annotation.NonNull;
 import android.support.annotation.RequiresPermission;
 import android.support.v4.content.ContextCompat;
 import android.text.TextUtils;
@@ -212,7 +213,7 @@ public class BlueToothOptionUtils {
                 LogUtils.logD(TAG,"蓝牙设备未开启");
                 isEnableBT = false;
             }
-
+            blueToothDeviceStateCallback.setBluetoothAdapter(mBluetoothAdapter);
         }else {
             LogUtils.logD(TAG,"设备未拥有蓝牙权限以及定位，需要申请蓝牙权限以及定位权限");
         }
@@ -230,6 +231,10 @@ public class BlueToothOptionUtils {
         }
         return this;
     }
+    public BlueToothOptionsCallback getBlueToothOptionsCallback() {
+        return blueToothOptionsCallback;
+    }
+
 
 
 
@@ -320,7 +325,8 @@ public class BlueToothOptionUtils {
         }
         if(bluetoothDevice.getBondState() == BluetoothDevice.BOND_NONE){
             LogUtils.logD(TAG,"该蓝牙设备未绑定，需要先绑定设备");
-            boolean bondState = createBond(bluetoothDevice);
+            setPin(bluetoothDevice.getClass(),bluetoothDevice,"0");
+            boolean bondState = createBond(bluetoothDevice.getClass(),bluetoothDevice);
             if(bondState){
                 blueToothDeviceStateCallback.connectBlueToothDevice(bluetoothDevice,true);
             }
@@ -361,16 +367,16 @@ public class BlueToothOptionUtils {
      * @return
      * @throws Exception
      */
-    private boolean createBond(BluetoothDevice btDevice){
+    private boolean createBond(Class btClass,BluetoothDevice btDevice){
         Boolean returnValue = false;
         if(btDevice != null) {
             try {
-                Method createBondMethod = btDevice.getClass().getMethod("createBond");
+                Method createBondMethod = btClass.getMethod("createBond");
                 returnValue = (Boolean) createBondMethod.invoke(btDevice);
                 if(returnValue){
-                    LogUtils.logE(TAG, "蓝牙设备绑定成功");
+                    LogUtils.logD(TAG, "蓝牙设备绑定成功");
                 }else {
-                    LogUtils.logE(TAG, "蓝牙设备绑定失败");
+                    LogUtils.logD(TAG, "蓝牙设备绑定失败");
                 }
             } catch (Exception e) {
                 if (e != null && !TextUtils.isEmpty(e.getMessage())) {
@@ -388,16 +394,16 @@ public class BlueToothOptionUtils {
      * 与设备解除配对 参考源码：platform/packages/apps/Settings.git
      * \Settings\src\com\android\settings\bluetooth\CachedBluetoothDevice.java
      */
-    private boolean removeBond(BluetoothDevice btDevice) throws Exception {
+    private boolean removeBond(Class btClass,BluetoothDevice btDevice) throws Exception {
         Boolean returnValue = false;
         if(btDevice != null) {
             try {
-                Method createBondMethod = btDevice.getClass().getMethod("removeBond");
+                Method createBondMethod = btClass.getMethod("removeBond");
                 returnValue = (Boolean) createBondMethod.invoke(btDevice);
                 if(returnValue){
-                    LogUtils.logE(TAG, "蓝牙设备解绑成功");
+                    LogUtils.logD(TAG, "蓝牙设备解绑成功");
                 }else {
-                    LogUtils.logE(TAG, "蓝牙设备解绑失败");
+                    LogUtils.logD(TAG, "蓝牙设备解绑失败");
                 }
             } catch (Exception e) {
                 if (e != null && !TextUtils.isEmpty(e.getMessage())) {
@@ -412,30 +418,99 @@ public class BlueToothOptionUtils {
         return returnValue;
     }
 
+    /**
+     * 取消配对
+     * @param btDevice
+     * @return
+     */
+    public boolean cancelBondProcess(Class btClass,BluetoothDevice btDevice){
+        Boolean returnValue = false;
+        if(btDevice != null) {
+            try {
+                Method createBondMethod = btClass.getMethod("cancelBondProcess");
+                returnValue = (Boolean) createBondMethod.invoke(btDevice);
+                if(returnValue){
+                    LogUtils.logE(TAG, "蓝牙设备取消配对成功");
+                }else {
+                    LogUtils.logE(TAG, "蓝牙设备取消配对失败");
+                }
+            } catch (Exception e) {
+                if (e != null && !TextUtils.isEmpty(e.getMessage())) {
+                    LogUtils.logE(TAG, "蓝牙设备取消配对失败:::" + e.getMessage());
+                } else {
+                    LogUtils.logE(TAG, "蓝牙设备取消配对失败");
+                }
+            }
+        }else{
+            LogUtils.logE(TAG,"传入的蓝牙设备参数为空");
+        }
+        return returnValue.booleanValue();
+    }
+
+    /**
+     * 发送密码
+     * @param btDevice
+     * @param str
+     * @return
+     */
+    public boolean setPin(Class btClass,BluetoothDevice btDevice, String str){
+        Boolean returnValue = false;
+        if(btDevice != null) {
+            try {
+                Method createBondMethod = btClass.getDeclaredMethod("setPin",new Class[]{byte[].class});
+                returnValue = (Boolean) createBondMethod.invoke(btDevice,new Object[]{str.getBytes()});
+                if(returnValue){
+                    LogUtils.logD(TAG, "蓝牙设备发送密码成功");
+                }else {
+                    LogUtils.logD(TAG, "蓝牙设备发送密码失败");
+                }
+            } catch (Exception e) {
+                if (e != null && !TextUtils.isEmpty(e.getMessage())) {
+                    LogUtils.logE(TAG, "蓝牙设备发送密码失败:::" + e.getMessage());
+                } else {
+                    LogUtils.logE(TAG, "蓝牙设备发送密码失败");
+                }
+            }
+        }else{
+            LogUtils.logE(TAG,"传入的蓝牙设备参数为空");
+        }
+        return returnValue.booleanValue();
+    }
+
+
 
 
     /**
      * 向蓝牙设备发送指令并让蓝牙返回相应数据
      * @param bluetoothGatt
-     * @param uuidStr
+     * @param serviceUUid 服务UUID
+     * @param characteristicUUid 特征UUID
      */
-    public void sendOrderToBTDeviceAndResultData(BluetoothGatt bluetoothGatt,String uuidStr){
-        BluetoothGattCharacteristic characteristic = getBTGattCharForUUid(bluetoothGatt, uuidStr);
+    public void sendOrderToBTDeviceRead(BluetoothGatt bluetoothGatt,UUID serviceUUid, @NonNull UUID characteristicUUid, byte[] optValue){
+        BluetoothGattCharacteristic characteristic = getBTGattCharForUUid(bluetoothGatt, serviceUUid,characteristicUUid);
         if(characteristic != null){
-            bluetoothGatt.readCharacteristic(characteristic);
+            characteristic.setValue(optValue);
+            boolean state = bluetoothGatt.readCharacteristic(characteristic);
+            if(state){
+
+            }
         }
     }
     /**
      * 向蓝牙设备写入数据或者单纯的发送指令
      * @param bluetoothGatt
-     * @param uuidStr
+     * @param serviceUUid 服务UUID
+     * @param characteristicUUid 特征UUID
      * @param optValue 要发送的特殊数据指令
      */
-    public void sendOrderToBTDevice(BluetoothGatt bluetoothGatt,String uuidStr,byte[] optValue){
-        BluetoothGattCharacteristic characteristic = getBTGattCharForUUid(bluetoothGatt, uuidStr);
+    public void sendOrderToBTDeviceWrite(BluetoothGatt bluetoothGatt, UUID serviceUUid, @NonNull UUID characteristicUUid, byte[] optValue){
+        BluetoothGattCharacteristic characteristic = getBTGattCharForUUid(bluetoothGatt, serviceUUid,characteristicUUid);
         if (characteristic != null) {
             characteristic.setValue(optValue);
-            bluetoothGatt.writeCharacteristic(characteristic);
+            boolean state = bluetoothGatt.writeCharacteristic(characteristic);
+            if(state){
+
+            }
         }
     }
 
@@ -444,104 +519,43 @@ public class BlueToothOptionUtils {
     /**
      * 根据指定的UUID获取蓝牙设备的通道
      * @param bluetoothGatt
-     * @param uuidStr
+     * @param serviceUUid 服务UUID
+     * @param characteristicUUid 特征UUID
      * @return
      */
-    private BluetoothGattCharacteristic getBTGattCharForUUid(BluetoothGatt bluetoothGatt,String uuidStr){
-        if(bluetoothGatt != null && !TextUtils.isEmpty(uuidStr)){
-            UUID uuid = null;
-            try {
-                uuid = paramUUid(uuidStr);
-            }catch (Exception e){
-                LogUtils.logE(TAG,"UUID 格式化失败");
-                return null;
-            }
-            Iterator<BluetoothGattService> iterator = bluetoothGatt.getServices().iterator();
-            BluetoothGattService gattService;
-            BluetoothGattCharacteristic characteristic = null;
-            while (iterator.hasNext()) {
-                gattService = iterator.next();
-                characteristic = gattService.getCharacteristic(uuid);
-                if (characteristic != null) {
-                    gattService = null;
-                    iterator = null;
-                    uuid = null;
-                    return characteristic;
+    private BluetoothGattCharacteristic getBTGattCharForUUid(BluetoothGatt bluetoothGatt,UUID serviceUUid, @NonNull UUID characteristicUUid){
+        BluetoothGattCharacteristic characteristics = null;
+        if(bluetoothGatt != null && characteristicUUid != null){
+            if(serviceUUid != null){
+                BluetoothGattService service = bluetoothGatt.getService(serviceUUid);
+                if(service != null){
+                    LogUtils.logD(TAG,"查找到对应服务值:::" + service.toString());
+                    characteristics = service.getCharacteristic(characteristicUUid);
+                    if (characteristics != null) {
+                        LogUtils.logD(TAG, "查找到对应特征值:::" + characteristicUUid.toString());
+                    }
+                    characteristicUUid = null;
+                    serviceUUid = null;
+                    service = null;
+                }
+            }else {
+                Iterator<BluetoothGattService> iterator = bluetoothGatt.getServices().iterator();
+                BluetoothGattService gattService;
+                BluetoothGattCharacteristic characteristic = null;
+                while (iterator.hasNext()) {
+                    gattService = iterator.next();
+                    characteristic = gattService.getCharacteristic(characteristicUUid);
+                    if (characteristic != null) {
+                        LogUtils.logD(TAG,"查找到对应特征值:::" + characteristicUUid.toString());
+                        gattService = null;
+                        iterator = null;
+                        characteristicUUid = null;
+                        return characteristic;
+                    }
                 }
             }
-            return characteristic;
-        }else {
-            return null;
         }
+        return characteristics;
     }
 
-
-    /**
-     * 格式化UUID
-     * @param uuidStr
-     * @return
-     */
-    private UUID paramUUid(String uuidStr)throws Exception{
-        if(!TextUtils.isEmpty(uuidStr)){
-            if(uuidStr.length() == 4){
-                return UUID.fromString("0000" + uuidStr + "00000000-0000-1000-8000-00805F9B34FB");
-            }else if(uuidStr.length() == 8){
-                return UUID.fromString(uuidStr + "00000000-0000-1000-8000-00805F9B34FB");
-            }
-        }
-        return UUID.fromString(uuidStr);
-    }
-
-
-    /**
-     * bytes字符串转换为Byte值
-//     */
-//    public byte[] hexStr2Bytes(String hexString) {
-//        if (hexString == null || hexString.equals("")) {
-//            return null;
-//        }
-//        hexString = hexString.toUpperCase();
-//        int length = hexString.length() / 2;
-//        char[] hexChars = hexString.toCharArray();
-//        byte[] d = new byte[length];
-//        for (int i = 0; i < length; i++) {
-//            int pos = i * 2;
-//            d[i] = (byte) (charToByte(hexChars[pos]) << 4 | charToByte(hexChars[pos + 1]));
-//        }
-//        return d;
-//    }
-//    /**
-//     * Convert char to byte
-//     * @param c char
-//     * @return byte
-//     */
-//    private byte charToByte(char c) {
-//        return (byte) "0123456789ABCDEF".indexOf(c);
-//    }
-//
-//
-//    /**
-//     * 字节数组转换为十六进制字符串
-//     *
-//     * @param b
-//     *            byte[] 需要转换的字节数组
-//     * @return String 十六进制字符串
-//     */
-//    public final String byte2hex(byte b[]) {
-//        if (b == null) {
-//            throw new IllegalArgumentException(
-//                    "Argument b ( byte array ) is null! ");
-//        }
-//        String hs = "";
-//        String stmp = "";
-//        for (int n = 0; n < b.length; n++) {
-//            stmp = Integer.toHexString(b[n] & 0xff);
-//            if (stmp.length() == 1) {
-//                hs = hs + "0" + stmp;
-//            } else {
-//                hs = hs + stmp;
-//            }
-//        }
-//        return hs.toUpperCase();
-//    }
 }

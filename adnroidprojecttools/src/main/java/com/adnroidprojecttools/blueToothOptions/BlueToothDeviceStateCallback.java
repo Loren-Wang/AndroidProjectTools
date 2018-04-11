@@ -1,9 +1,11 @@
 package com.adnroidprojecttools.blueToothOptions;
 
+import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCallback;
 import android.bluetooth.BluetoothGattCharacteristic;
+import android.bluetooth.BluetoothGattDescriptor;
 import android.bluetooth.BluetoothProfile;
 import android.os.Handler;
 import android.os.Message;
@@ -29,6 +31,7 @@ public class BlueToothDeviceStateCallback  extends BluetoothGattCallback {
     private final String TAG = getClass().getName();
     private BluetoothGatt bluetoothGatt;
     private BluetoothDevice bluetoothDevice;//正在连接的设备
+    private BluetoothAdapter bluetoothAdapter;
     private boolean isConnecting = false;//是否正在发起连接
     private boolean isConnectSuccess = false;//是否连接成功
     private BlueToothOptionsCallback blueToothOptionsCallback;
@@ -59,6 +62,11 @@ public class BlueToothDeviceStateCallback  extends BluetoothGattCallback {
 
     public void setBlueToothOptionsCallback(BlueToothOptionsCallback blueToothOptionsCallback) {
         this.blueToothOptionsCallback = blueToothOptionsCallback;
+    }
+
+    public BlueToothDeviceStateCallback setBluetoothAdapter(BluetoothAdapter bluetoothAdapter) {
+        this.bluetoothAdapter = bluetoothAdapter;
+        return this;
     }
 
     public BluetoothDevice getBluetoothDevice() {
@@ -144,7 +152,7 @@ public class BlueToothDeviceStateCallback  extends BluetoothGattCallback {
                 this.bluetoothGatt = gatt = null;
 
                 //开启重连，并做判断，超过一定重连次数则不再进行重连
-                if(++reconNum % CONNECT_ERROR_RECONNECTION_MAX_NUM > 0) {
+                if(reconNum % CONNECT_ERROR_RECONNECTION_MAX_NUM > 0) {
                     isRecon = true;
                     handler.sendEmptyMessage(CONNECT_ERROR_RECONNECTION);
                 }else {
@@ -181,5 +189,46 @@ public class BlueToothDeviceStateCallback  extends BluetoothGattCallback {
             blueToothOptionsCallback.onBTDeviceWriteCallback(bluetoothGatt,characteristic);
         }
     }
+
+    @Override
+    public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
+        super.onCharacteristicChanged(gatt, characteristic);
+    }
+
+    @Override
+    public void onDescriptorRead(BluetoothGatt gatt, BluetoothGattDescriptor descriptor, int status) {
+        super.onDescriptorRead(gatt, descriptor, status);
+    }
+
+    @Override
+    public void onDescriptorWrite(BluetoothGatt gatt, BluetoothGattDescriptor descriptor, int status) {
+        super.onDescriptorWrite(gatt, descriptor, status);
+    }
+
+    @Override
+    public void onMtuChanged(BluetoothGatt gatt, int mtu, int status) {
+        super.onMtuChanged(gatt, mtu, status);
+    }
+
+    @Override
+    public void onPhyRead(BluetoothGatt gatt, int txPhy, int rxPhy, int status) {
+        super.onPhyRead(gatt, txPhy, rxPhy, status);
+    }
+
+    @Override
+    public void onPhyUpdate(BluetoothGatt gatt, int txPhy, int rxPhy, int status) {
+        super.onPhyUpdate(gatt, txPhy, rxPhy, status);
+    }
+
+    @Override
+    public void onReadRemoteRssi(BluetoothGatt gatt, int rssi, int status) {
+        super.onReadRemoteRssi(gatt, rssi, status);
+    }
+
+    @Override
+    public void onReliableWriteCompleted(BluetoothGatt gatt, int status) {
+        super.onReliableWriteCompleted(gatt, status);
+    }
+
 
 }
