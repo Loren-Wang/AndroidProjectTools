@@ -1,9 +1,9 @@
 package com.androidprojecttools.android;
 
 import android.Manifest;
-import android.annotation.SuppressLint;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
+import android.bluetooth.BluetoothGattCharacteristic;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
@@ -11,13 +11,13 @@ import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 
-import com.adnroidprojecttools.bluetooth.BlueToothStateListener;
-import com.adnroidprojecttools.bluetooth.BlueToothUtils;
+import com.adnroidprojecttools.blueToothOptions.BlueToothOptionUtils;
+import com.adnroidprojecttools.blueToothOptions.BlueToothOptionsCallback;
+import com.adnroidprojecttools.common.DigitalTransUtils;
 import com.adnroidprojecttools.common.LogUtils;
 import com.adnroidprojecttools.common.Setting;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
@@ -63,41 +63,57 @@ public class MainActivity extends AppCompatActivity {
         }
         try {//只要有一个权限不通过则都失败
             if(failPermissionList.size() == 0){
-                @SuppressLint("MissingPermission") final BlueToothUtils blueToothUtils = new BlueToothUtils();
-                blueToothUtils.enableBlueTooth().scanDevice(false)
-                        .setBlueToothStateListener(new BlueToothStateListener() {
+                BlueToothOptionUtils.getInstance().setBlueToothOptionsCallback(new BlueToothOptionsCallback() {
                     @Override
-                    protected void startScan() {
+                    protected void connectBTDeviceSuccess(BluetoothGatt bluetoothGatt) {
 
                     }
 
                     @Override
-                    protected void stopScan(List<BluetoothDevice> deviceList) {
-                        Iterator<BluetoothDevice> iterator = deviceList.iterator();
-                        BluetoothDevice bluetoothDevice;
-                        while (iterator.hasNext()){
-                            bluetoothDevice = iterator.next();
-                            if(!TextUtils.isEmpty(bluetoothDevice.getName()) && bluetoothDevice.getName().contains("MI1S")){
-                                blueToothUtils.connectDevice(bluetoothDevice);
-                                blueToothUtils.scanDevice(true);
-                            }
+                    protected void connectBTDeviceFail(BluetoothGatt bluetoothGatt) {
+
+                    }
+
+                    @Override
+                    protected void reConnectBTDevice(BluetoothGatt bluetoothGatt) {
+
+                    }
+
+                    @Override
+                    protected void connectBTClose(BluetoothGatt bluetoothGatt) {
+
+                    }
+
+                    @Override
+                    protected boolean scanResultJudge(BluetoothDevice bluetoothDevice) {
+                        if(!TextUtils.isEmpty(bluetoothDevice.getName()) && bluetoothDevice.getName().contains("MI1S")){
+                            BlueToothOptionUtils.getInstance().connectBTClose(bluetoothDevice).connectBTDevice(bluetoothDevice);
+                            BlueToothOptionUtils.getInstance().stopScan();
+                            return true;
                         }
+                        return false;
                     }
 
                     @Override
-                    protected void connectSuccess(BluetoothGatt gatt) {
+                    protected void onBTDeviceReadCallback(BluetoothGatt bluetoothGatt, BluetoothGattCharacteristic characteristic) {
+                         //小米运动步数
+                        int stepNum = characteristic.getValue()[3] << 24 | (characteristic.getValue()[2] & 0xFF) << 16 | (characteristic.getValue()[1] & 0xFF) << 8 | (characteristic.getValue()[0] & 0xFF);
+                }
+
+                    @Override
+                    protected void onBTDeviceWriteCallback(BluetoothGatt bluetoothGatt, BluetoothGattCharacteristic characteristic) {
+                        //小米运动步数
+                        int stepNum = characteristic.getValue()[3] << 24 | (characteristic.getValue()[2] & 0xFF) << 16 | (characteristic.getValue()[1] & 0xFF) << 8 | (characteristic.getValue()[0] & 0xFF);
+
                     }
 
                     @Override
-                    protected void connectFail(BluetoothGatt gatt) {
+                    protected void allowSenOrderToBTDevice(BluetoothGatt bluetoothGatt) {
+                        BlueToothOptionUtils.getInstance().sendOrderToBTDevice(bluetoothGatt,"00002a06-0000-1000-8000-00805f9b34fb"
+                                , DigitalTransUtils.getInstance().hex2byte("02"));
 
                     }
-
-                            @Override
-                            protected void allowCommunication(BluetoothGatt gatt) {
-                                blueToothUtils.sendOrderToBTDevice(gatt,"00002a06-0000-1000-8000-00805f9b34fb","01");
-                            }
-                        });
+                }).enableBlueTooth().startScan();
             }
         }catch (Exception e){
             LogUtils.logE(TAG,e.getMessage());

@@ -1,4 +1,4 @@
-package com.adnroidprojecttools.bluetooth;
+package com.adnroidprojecttools.blueToothOptions;
 
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
@@ -12,13 +12,11 @@ import android.text.TextUtils;
 import com.adnroidprojecttools.common.LogUtils;
 import com.adnroidprojecttools.common.Setting;
 
-import java.util.List;
-
 /**
- * Created by LorenWang on 2018/4/9.
- * 创建时间：2018/4/9 17:18
+ * Created by LorenWang on 2018/4/11.
+ * 创建时间：2018/4/11 14:09
  * 创建人：王亮（Loren wang）
- * 功能作用：蓝牙状态监听
+ * 功能作用：
  * 思路：
  * 方法：
  * 注意：
@@ -27,10 +25,13 @@ import java.util.List;
  * 备注：
  */
 
-public abstract class BlueToothStateListener extends BluetoothGattCallback {
+public class BlueToothDeviceStateCallback  extends BluetoothGattCallback {
     private final String TAG = getClass().getName();
     private BluetoothGatt bluetoothGatt;
-    private BluetoothDevice bluetoothDevice;
+    private BluetoothDevice bluetoothDevice;//正在连接的设备
+    private boolean isConnecting = false;//是否正在发起连接
+    private boolean isConnectSuccess = false;//是否连接成功
+    private BlueToothOptionsCallback blueToothOptionsCallback;
 
     private final int CONNECT_ERROR_RECONNECTION = 0;//蓝牙连接异常重新连接
     private final int CONNECT_ERROR_RECONNECTION_MAX_NUM = 5;//蓝牙连接重连次数
@@ -42,6 +43,8 @@ public abstract class BlueToothStateListener extends BluetoothGattCallback {
             super.handleMessage(msg);
             switch (msg.what){
                 case CONNECT_ERROR_RECONNECTION:
+                    blueToothOptionsCallback.reConnectBTDevice(bluetoothGatt);
+                    LogUtils.logD(TAG,"蓝牙设备重连中");
                     reConBTDevice(bluetoothDevice);
                     break;
                 default:
@@ -50,12 +53,21 @@ public abstract class BlueToothStateListener extends BluetoothGattCallback {
         }
     };
 
-    protected abstract void startScan();//开启蓝牙扫描
-    protected abstract void stopScan(List<BluetoothDevice> deviceList);//停止蓝牙扫描,并返回扫描结果
-    protected abstract void connectSuccess(BluetoothGatt gatt);//蓝牙连接成功
-    protected abstract void connectFail(BluetoothGatt gatt);//蓝牙连接失败
-    protected abstract void allowCommunication(BluetoothGatt gatt);//允许和蓝牙设备进行通信
+    public BlueToothDeviceStateCallback(BlueToothOptionsCallback blueToothOptionsCallback) {
+        this.blueToothOptionsCallback = blueToothOptionsCallback;
+    }
 
+    public void setBlueToothOptionsCallback(BlueToothOptionsCallback blueToothOptionsCallback) {
+        this.blueToothOptionsCallback = blueToothOptionsCallback;
+    }
+
+    public BluetoothDevice getBluetoothDevice() {
+        return bluetoothDevice;
+    }
+
+    public boolean isConnectSuccess() {
+        return isConnectSuccess;
+    }
 
     /**
      * 连接蓝牙设备
@@ -72,18 +84,29 @@ public abstract class BlueToothStateListener extends BluetoothGattCallback {
             reConBTDevice(bluetoothDevice);
         }
     }
-
     /**
      * 内部重连方法
      * @param bluetoothDevice
      */
     private void reConBTDevice(BluetoothDevice bluetoothDevice){
-        if(bluetoothDevice != null && !TextUtils.isEmpty(bluetoothDevice.getAddress())){
+        if(bluetoothDevice != null && !TextUtils.isEmpty(bluetoothDevice.getAddress()) && !isConnecting){
             this.bluetoothDevice = bluetoothDevice;
             bluetoothDevice.connectGatt(Setting.APPLICATION_CONTEXT,true,this);
+            isConnecting = true;
             LogUtils.logD(TAG,"开始连接蓝牙设备");
         }
     }
+    /**
+     * 关闭蓝牙连接
+     * @param bluetoothDevice
+     */
+    public void connectBTClose(BluetoothDevice bluetoothDevice){
+        if(bluetoothGatt != null){
+            bluetoothGatt.disconnect();
+            isConnectSuccess = false;
+        }
+    }
+
 
     /**
      * 蓝牙连接状态改变
@@ -94,15 +117,25 @@ public abstract class BlueToothStateListener extends BluetoothGattCallback {
     @Override
     public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
         super.onConnectionStateChange(gatt, status, newState);
+        isConnecting = false;
         this.bluetoothGatt = gatt;
         if (status == BluetoothGatt.GATT_SUCCESS && newState == BluetoothProfile.STATE_CONNECTED) {
             LogUtils.logD(TAG,"连接蓝牙设备成功");
+            isConnectSuccess = true;
+            blueToothOptionsCallback.connectBTDeviceSuccess(gatt);
             //获取蓝牙设备信息
             gatt.discoverServices();
-            connectSuccess(gatt);
         } else if (status == BluetoothGatt.GATT_FAILURE && newState == BluetoothProfile.STATE_DISCONNECTED) {
-            LogUtils.logD(TAG,"连接蓝牙设备失败");
-            connectFail(gatt);
+            isConnectSuccess = false;
+            if(newState == BluetoothProfile.STATE_DISCONNECTED){
+                LogUtils.logD(TAG,"连接蓝牙设备断开连接");
+                bluetoothGatt.close();
+                blueToothOptionsCallback.connectBTClose(gatt);
+            }else {
+                LogUtils.logD(TAG,"连接蓝牙设备失败");
+                blueToothOptionsCallback.connectBTDeviceFail(gatt);
+            }
+
         }else {
             //防止出现133错误
             if(gatt != null && status == 133) {
@@ -120,66 +153,14 @@ public abstract class BlueToothStateListener extends BluetoothGattCallback {
             }
         }
     }
-//
-//    int uuidPosi = 0;
-//    String[] uuids = new String[]{"00002a01-0000-1000-8000-00805f9b34fb"
-//            ,"00002a02-0000-1000-8000-00805f9b34fb"
-//            ,"00002a04-0000-1000-8000-00805f9b34fb"
-//            ,"00002a05-0000-1000-8000-00805f9b34fb"
-//            ,"0000ff01-0000-1000-8000-00805f9b34fb"
-//            ,"0000ff02-0000-1000-8000-00805f9b34fb"
-//            ,"0000ff03-0000-1000-8000-00805f9b34fb"
-//            ,"0000ff04-0000-1000-8000-00805f9b34fb"
-//            ,"0000ff05-0000-1000-8000-00805f9b34fb"
-//            ,"0000ff06-0000-1000-8000-00805f9b34fb"
-//            ,"0000ff07-0000-1000-8000-00805f9b34fb"
-//            ,"0000ff08-0000-1000-8000-00805f9b34fb"
-//            ,"0000ff09-0000-1000-8000-00805f9b34fb"
-//            ,"0000ff0a-0000-1000-8000-00805f9b34fb"
-//            ,"0000ff0b-0000-1000-8000-00805f9b34fb"
-//            ,"0000ff0c-0000-1000-8000-00805f9b34fb"
-//            ,"0000ff0d-0000-1000-8000-00805f9b34fb"
-//            ,"0000ff0e-0000-1000-8000-00805f9b34fb"
-//            ,"0000ff0f-0000-1000-8000-00805f9b34fb"
-//            ,"0000ff10-0000-1000-8000-00805f9b34fb"
-//            ,"0000fec9-0000-1000-8000-00805f9b34fb"
-//            ,"0000fedd-0000-1000-8000-00805f9b34fb"
-//            ,"0000fede-0000-1000-8000-00805f9b34fb"
-//            ,"0000fedf-0000-1000-8000-00805f9b34fb"
-//            ,"0000fed0-0000-1000-8000-00805f9b34fb"
-//            ,"0000fed1-0000-1000-8000-00805f9b34fb"
-//            ,"0000fed2-0000-1000-8000-00805f9b34fb"
-//            ,"0000fed3-0000-1000-8000-00805f9b34fb"
-//            ,"00002a37-0000-1000-8000-00805f9b34fb"
-//            ,"00002a39-0000-1000-8000-00805f9b34fb"
-//            ,"00002a06-0000-1000-8000-00805f9b34fb"
-//    };
-//    private void testGetBTInfo(BluetoothGatt gatt){
-//        if(uuidPosi < uuids.length) {
-//            boolean isHave = false;
-//            List<BluetoothGattService> services = gatt.getServices();
-//            for (BluetoothGattService service : services) {
-//                BluetoothGattCharacteristic characteristic = service.getCharacteristic(UUID.fromString(uuids[uuidPosi]));
-//                if (characteristic != null) {
-//                    characteristic.setValue(hexStr2Bytes("02"));
-//                    gatt.writeCharacteristic(characteristic);
-//                    isHave = true;
-//                }
-//            }
-//            uuidPosi++;
-//
-////            if (!isHave) {
-////                testGetBTInfo(gatt);
-////            }
-//        }
-//    }
 
     @Override
     public void onServicesDiscovered(final BluetoothGatt gatt, int status) {
         super.onServicesDiscovered(gatt, status);
         this.bluetoothGatt = gatt;
         if(status == BluetoothGatt.GATT_SUCCESS) {
-            allowCommunication(gatt);
+            LogUtils.logD(TAG,"蓝牙设备准备就绪");
+            blueToothOptionsCallback.allowSenOrderToBTDevice(bluetoothGatt);
         }
     }
 
@@ -187,13 +168,18 @@ public abstract class BlueToothStateListener extends BluetoothGattCallback {
     public void onCharacteristicRead(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
         super.onCharacteristicRead(gatt, characteristic, status);
         this.bluetoothGatt = gatt;
-        LogUtils.logD(TAG, String.valueOf(status));
+        if(status == BluetoothGatt.GATT_SUCCESS) {
+            blueToothOptionsCallback.onBTDeviceReadCallback(bluetoothGatt,characteristic);
+        }
     }
 
     @Override
     public void onCharacteristicWrite(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
         super.onCharacteristicWrite(gatt, characteristic, status);
         this.bluetoothGatt = gatt;
-        LogUtils.logD(TAG, String.valueOf(status));
+        if(status == BluetoothGatt.GATT_SUCCESS) {
+            blueToothOptionsCallback.onBTDeviceWriteCallback(bluetoothGatt,characteristic);
+        }
     }
+
 }
