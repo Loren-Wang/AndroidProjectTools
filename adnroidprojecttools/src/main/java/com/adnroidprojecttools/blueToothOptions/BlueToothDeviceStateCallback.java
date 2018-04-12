@@ -1,6 +1,5 @@
 package com.adnroidprojecttools.blueToothOptions;
 
-import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCallback;
@@ -11,6 +10,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.text.TextUtils;
 
+import com.adnroidprojecttools.common.DigitalTransUtils;
 import com.adnroidprojecttools.common.LogUtils;
 import com.adnroidprojecttools.common.Setting;
 
@@ -18,20 +18,19 @@ import com.adnroidprojecttools.common.Setting;
  * Created by LorenWang on 2018/4/11.
  * 创建时间：2018/4/11 14:09
  * 创建人：王亮（Loren wang）
- * 功能作用：
- * 思路：
+ * 功能作用：蓝牙设备状态改变回调
+ * 思路：当连接成功同时获取到了所有的设备服务后通过操作回调
  * 方法：
  * 注意：
  * 修改人：
  * 修改时间：
- * 备注：
+ * 备注：蓝牙设备通信流程，先开启通道进行通知的接收，当通知通道开启后才能开启读写操作
  */
 
 public class BlueToothDeviceStateCallback  extends BluetoothGattCallback {
     private final String TAG = getClass().getName();
     private BluetoothGatt bluetoothGatt;
     private BluetoothDevice bluetoothDevice;//正在连接的设备
-    private BluetoothAdapter bluetoothAdapter;
     private boolean isConnecting = false;//是否正在发起连接
     private boolean isConnectSuccess = false;//是否连接成功
     private BlueToothOptionsCallback blueToothOptionsCallback;
@@ -46,7 +45,7 @@ public class BlueToothDeviceStateCallback  extends BluetoothGattCallback {
             super.handleMessage(msg);
             switch (msg.what){
                 case CONNECT_ERROR_RECONNECTION:
-                    blueToothOptionsCallback.reConnectBTDevice(bluetoothGatt);
+                    blueToothOptionsCallback.reConnectBTDevice();
                     LogUtils.logD(TAG,"蓝牙设备重连中");
                     reConBTDevice(bluetoothDevice);
                     break;
@@ -56,26 +55,30 @@ public class BlueToothDeviceStateCallback  extends BluetoothGattCallback {
         }
     };
 
-    public BlueToothDeviceStateCallback(BlueToothOptionsCallback blueToothOptionsCallback) {
-        this.blueToothOptionsCallback = blueToothOptionsCallback;
-    }
-
+    /**
+     * 设置蓝牙操作回调
+     * @param blueToothOptionsCallback
+     */
     public void setBlueToothOptionsCallback(BlueToothOptionsCallback blueToothOptionsCallback) {
         this.blueToothOptionsCallback = blueToothOptionsCallback;
     }
-
-    public BlueToothDeviceStateCallback setBluetoothAdapter(BluetoothAdapter bluetoothAdapter) {
-        this.bluetoothAdapter = bluetoothAdapter;
-        return this;
-    }
-
+    /**
+     * 获取当前正在连接的设备
+     * @return
+     */
     public BluetoothDevice getBluetoothDevice() {
         return bluetoothDevice;
     }
-
+    /**
+     * 连接是否成功
+     * @return
+     */
     public boolean isConnectSuccess() {
         return isConnectSuccess;
     }
+
+
+    /****************************************连接操作***********************************************/
 
     /**
      * 连接蓝牙设备
@@ -116,6 +119,8 @@ public class BlueToothDeviceStateCallback  extends BluetoothGattCallback {
     }
 
 
+    /********************************************数据操作*******************************************/
+
     /**
      * 蓝牙连接状态改变
      * @param gatt
@@ -131,7 +136,7 @@ public class BlueToothDeviceStateCallback  extends BluetoothGattCallback {
             LogUtils.logD(TAG,"连接蓝牙设备成功");
             isConnectSuccess = true;
             blueToothOptionsCallback.connectBTDeviceSuccess(gatt);
-            //获取蓝牙设备信息，启动服务发现
+            //获取蓝牙设备信息
             gatt.discoverServices();
         } else if (status == BluetoothGatt.GATT_FAILURE && newState == BluetoothProfile.STATE_DISCONNECTED) {
             isConnectSuccess = false;
@@ -176,6 +181,9 @@ public class BlueToothDeviceStateCallback  extends BluetoothGattCallback {
     public void onCharacteristicRead(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
         super.onCharacteristicRead(gatt, characteristic, status);
         this.bluetoothGatt = gatt;
+        if(characteristic.getValue() != null){
+            LogUtils.logD(TAG,"接收到读命令返回数据:::" + DigitalTransUtils.getInstance().byte2HexStr(characteristic.getValue()));
+        }
         if(status == BluetoothGatt.GATT_SUCCESS) {
             blueToothOptionsCallback.onBTDeviceReadCallback(bluetoothGatt,characteristic);
         }
@@ -185,6 +193,9 @@ public class BlueToothDeviceStateCallback  extends BluetoothGattCallback {
     public void onCharacteristicWrite(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
         super.onCharacteristicWrite(gatt, characteristic, status);
         this.bluetoothGatt = gatt;
+        if(characteristic.getValue() != null){
+            LogUtils.logD(TAG,"接收到写命令返回数据:::" + DigitalTransUtils.getInstance().byte2HexStr(characteristic.getValue()));
+        }
         if(status == BluetoothGatt.GATT_SUCCESS) {
             blueToothOptionsCallback.onBTDeviceWriteCallback(bluetoothGatt,characteristic);
         }
@@ -193,16 +204,25 @@ public class BlueToothDeviceStateCallback  extends BluetoothGattCallback {
     @Override
     public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
         super.onCharacteristicChanged(gatt, characteristic);
+        if(characteristic.getValue() != null){
+            LogUtils.logD(TAG,"接收到特征值改变数据:::" + DigitalTransUtils.getInstance().byte2HexStr(characteristic.getValue()));
+        }
     }
 
     @Override
     public void onDescriptorRead(BluetoothGatt gatt, BluetoothGattDescriptor descriptor, int status) {
         super.onDescriptorRead(gatt, descriptor, status);
+        if(status == BluetoothGatt.GATT_SUCCESS) {
+            blueToothOptionsCallback.onBTDeviceDescriptorReadCallback(bluetoothGatt,descriptor);
+        }
     }
 
     @Override
     public void onDescriptorWrite(BluetoothGatt gatt, BluetoothGattDescriptor descriptor, int status) {
         super.onDescriptorWrite(gatt, descriptor, status);
+        if(status == BluetoothGatt.GATT_SUCCESS) {
+            blueToothOptionsCallback.onBTDeviceDescriptorWriteCallback(bluetoothGatt,descriptor);
+        }
     }
 
     @Override

@@ -4,12 +4,14 @@ import android.Manifest;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCharacteristic;
+import android.bluetooth.BluetoothGattDescriptor;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
+import android.util.Log;
 
 import com.adnroidprojecttools.blueToothOptions.BlueToothOptionUtils;
 import com.adnroidprojecttools.blueToothOptions.BlueToothOptionsCallback;
@@ -65,7 +67,8 @@ public class MainActivity extends AppCompatActivity {
         try {//只要有一个权限不通过则都失败
             if(failPermissionList.size() == 0){
                 final UUID serviceUUid = CarAirBlueToothInfo.getInstance().paramUUid("0001");
-                final UUID characteristicUUid = CarAirBlueToothInfo.getInstance().paramUUid("0003");
+                final UUID characteristicUUid02 = CarAirBlueToothInfo.getInstance().paramUUid("0002");
+                final UUID characteristicUUid03 = CarAirBlueToothInfo.getInstance().paramUUid("0003");
                 BlueToothOptionUtils.getInstance().setBlueToothOptionsCallback(new BlueToothOptionsCallback() {
                     @Override
                     protected void connectBTDeviceSuccess(BluetoothGatt bluetoothGatt) {
@@ -78,7 +81,7 @@ public class MainActivity extends AppCompatActivity {
                     }
 
                     @Override
-                    protected void reConnectBTDevice(BluetoothGatt bluetoothGatt) {
+                    protected void reConnectBTDevice() {
 
                     }
 
@@ -100,23 +103,47 @@ public class MainActivity extends AppCompatActivity {
 
                     @Override
                     protected void onBTDeviceReadCallback(BluetoothGatt bluetoothGatt, BluetoothGattCharacteristic characteristic) {
-                         //小米运动步数
-                        int stepNum = characteristic.getValue()[3] << 24 | (characteristic.getValue()[2] & 0xFF) << 16 | (characteristic.getValue()[1] & 0xFF) << 8 | (characteristic.getValue()[0] & 0xFF);
-                }
+//                         //小米运动步数
+//                        int stepNum = characteristic.getValue()[3] << 24 | (characteristic.getValue()[2] & 0xFF) << 16 | (characteristic.getValue()[1] & 0xFF) << 8 | (characteristic.getValue()[0] & 0xFF);
+
+                        int flag = characteristic.getProperties();
+                        int format = -1;
+                        if ((flag & 0x01) != 0) {
+                            format = BluetoothGattCharacteristic.FORMAT_UINT16;
+                            Log.d(TAG, "Heart rate format UINT16.");
+                        } else {
+                            format = BluetoothGattCharacteristic.FORMAT_UINT8;
+                            Log.d(TAG, "Heart rate format UINT8.");
+                        }
+                        final int heartRate = characteristic.getIntValue(format, 1);
+                    }
 
                     @Override
                     protected void onBTDeviceWriteCallback(BluetoothGatt bluetoothGatt, BluetoothGattCharacteristic characteristic) {
-                        //小米运动步数
-                        int stepNum = characteristic.getValue()[3] << 24 | (characteristic.getValue()[2] & 0xFF) << 16 | (characteristic.getValue()[1] & 0xFF) << 8 | (characteristic.getValue()[0] & 0xFF);
+//                        //小米运动步数
+//                        int stepNum = characteristic.getValue()[3] << 24 | (characteristic.getValue()[2] & 0xFF) << 16 | (characteristic.getValue()[1] & 0xFF) << 8 | (characteristic.getValue()[0] & 0xFF);
+                        allowSenOrderToBTDevice(bluetoothGatt);
+                    }
 
+                    @Override
+                    protected void onBTDeviceDescriptorWriteCallback(BluetoothGatt bluetoothGatt, BluetoothGattDescriptor descriptor) {
+                        BlueToothOptionUtils.getInstance().sendOrderToBTDeviceWrite(bluetoothGatt,serviceUUid,characteristicUUid02
+                                , new byte[]{0x55,0x01,0x01,0x02});
+                    }
+
+                    @Override
+                    protected void onBTDeviceDescriptorReadCallback(BluetoothGatt bluetoothGatt, BluetoothGattDescriptor descriptor) {
+                        boolean state = bluetoothGatt.readCharacteristic(descriptor.getCharacteristic());
+                        if(state){
+
+                        }
                     }
 
                     @Override
                     protected void allowSenOrderToBTDevice(BluetoothGatt bluetoothGatt) {
-                        BlueToothOptionUtils.getInstance().sendOrderToBTDeviceWrite(bluetoothGatt,serviceUUid,characteristicUUid
-                                , new byte[]{55,1,1,2});
-
+                        BlueToothOptionUtils.getInstance().sendOrderToBTDeviceNotify(bluetoothGatt,serviceUUid,characteristicUUid03);
                     }
+
                 }).enableBlueTooth().startScan();
             }
         }catch (Exception e){

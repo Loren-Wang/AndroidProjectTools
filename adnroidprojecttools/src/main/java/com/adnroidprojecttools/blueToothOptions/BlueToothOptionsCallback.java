@@ -3,6 +3,7 @@ package com.adnroidprojecttools.blueToothOptions;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCharacteristic;
+import android.bluetooth.BluetoothGattDescriptor;
 
 /**
  * Created by LorenWang on 2018/4/11.
@@ -28,10 +29,11 @@ public abstract class BlueToothOptionsCallback {
     }
     protected abstract void connectBTDeviceSuccess(BluetoothGatt bluetoothGatt);//蓝牙设备连接成功
     protected abstract void connectBTDeviceFail(BluetoothGatt bluetoothGatt);//蓝牙设备连接失败
-    protected abstract void reConnectBTDevice(BluetoothGatt bluetoothGatt);//蓝牙设备重连
+    protected abstract void reConnectBTDevice();//蓝牙设备重连
     protected abstract void connectBTClose(BluetoothGatt bluetoothGatt);//蓝牙设备连接关闭
     protected abstract void allowSenOrderToBTDevice(BluetoothGatt bluetoothGatt);//允许向蓝牙设备发送指令，只有执行了这个方法后才会允许指令发送
     protected abstract void onBTDeviceReadCallback(BluetoothGatt bluetoothGatt, BluetoothGattCharacteristic characteristic);//蓝牙设备读数据回调
     protected abstract void onBTDeviceWriteCallback(BluetoothGatt bluetoothGatt, BluetoothGattCharacteristic characteristic);//蓝牙设备写数据回调
-
+    protected abstract void onBTDeviceDescriptorWriteCallback(BluetoothGatt bluetoothGatt, BluetoothGattDescriptor descriptor);
+    protected abstract void onBTDeviceDescriptorReadCallback(BluetoothGatt bluetoothGatt, BluetoothGattDescriptor descriptor);
 }

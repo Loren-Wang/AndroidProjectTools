@@ -6,6 +6,7 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCharacteristic;
+import android.bluetooth.BluetoothGattDescriptor;
 import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothManager;
 import android.content.Context;
@@ -18,15 +19,14 @@ import android.support.annotation.NonNull;
 import android.support.annotation.RequiresPermission;
 import android.support.v4.content.ContextCompat;
 import android.text.TextUtils;
-import android.util.Log;
 
 import com.adnroidprojecttools.common.LogUtils;
 import com.adnroidprojecttools.common.Setting;
 
-import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -67,7 +67,7 @@ public class BlueToothOptionUtils {
         }
 
         @Override
-        protected void reConnectBTDevice(BluetoothGatt bluetoothGatt) {
+        protected void reConnectBTDevice() {
 
         }
 
@@ -87,12 +87,22 @@ public class BlueToothOptionUtils {
         }
 
         @Override
+        protected void onBTDeviceDescriptorWriteCallback(BluetoothGatt bluetoothGatt, BluetoothGattDescriptor descriptor) {
+
+        }
+
+        @Override
+        protected void onBTDeviceDescriptorReadCallback(BluetoothGatt bluetoothGatt, BluetoothGattDescriptor descriptor) {
+
+        }
+
+        @Override
         protected void allowSenOrderToBTDevice(BluetoothGatt bluetoothGatt) {
 
         }
     };
     //蓝牙设备状态回调,私有，仅在单例类中使用
-    private BlueToothDeviceStateCallback blueToothDeviceStateCallback = new BlueToothDeviceStateCallback(blueToothOptionsCallback){};
+    private BlueToothDeviceStateCallback blueToothDeviceStateCallback = new BlueToothDeviceStateCallback(){};
     private boolean isSupportBT = false;//设备是否支持蓝牙
     private boolean isEnableBT = false;//蓝牙是否开启
     private boolean isScan = false;//是否正在扫描蓝牙设备
@@ -226,8 +236,6 @@ public class BlueToothOptionUtils {
             intent.addAction(BluetoothAdapter.ACTION_SCAN_MODE_CHANGED);
             intent.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
             Setting.APPLICATION_CONTEXT.registerReceiver(blueToothDeviceReceiver, intent);
-            //传递蓝牙适配
-            blueToothDeviceStateCallback.setBluetoothAdapter(mBluetoothAdapter);
 
 
         }else {
@@ -340,24 +348,17 @@ public class BlueToothOptionUtils {
             LogUtils.logD(TAG,"已经有蓝牙设备正在连接，请先关闭连接后再进行操作！");
             return this;
         }
-        if(bluetoothDevice.getBondState() == BluetoothDevice.BOND_NONE){
-            LogUtils.logD(TAG,"该蓝牙设备未绑定，需要先绑定设备");
 
-            byte[] pinBytes;
-            try {
-                pinBytes = "0000".getBytes("UTF-8");
-            } catch (UnsupportedEncodingException uee) {
-                Log.e(TAG, "UTF-8 not supported?!?");  // this should not happen
-                return null;
-            }
-            if (pinBytes.length <= 0 || pinBytes.length > 16) {
-                return null;
-            }
+        //直接连接设备
+        blueToothDeviceStateCallback.connectBlueToothDevice(bluetoothDevice,true);
 
-            createBond(bluetoothDevice.getClass(), bluetoothDevice);
-        }else {
-            blueToothDeviceStateCallback.connectBlueToothDevice(bluetoothDevice,true);
-        }
+//        if(bluetoothDevice.getBondState() == BluetoothDevice.BOND_NONE){
+//            LogUtils.logD(TAG,"该蓝牙设备未绑定，需要先绑定设备");
+//
+//            createBond(bluetoothDevice.getClass(), bluetoothDevice);
+//        }else {
+//            blueToothDeviceStateCallback.connectBlueToothDevice(bluetoothDevice,true);
+//        }
 
         return this;
     }
@@ -386,6 +387,117 @@ public class BlueToothOptionUtils {
 
 
 
+
+    /**
+     * 向蓝牙设备发送指令并让蓝牙返回相应数据
+     * @param bluetoothGatt
+     * @param serviceUUid 服务UUID
+     * @param characteristicUUid 特征UUID
+     */
+    public void sendOrderToBTDeviceRead(BluetoothGatt bluetoothGatt,UUID serviceUUid, @NonNull UUID characteristicUUid, byte[] optValue){
+        LogUtils.logD(TAG,"准备向蓝牙设备发送读命令");
+        BluetoothGattCharacteristic characteristic = getBTGattCharForUUid(bluetoothGatt, serviceUUid,characteristicUUid);
+        if(characteristic != null){
+            LogUtils.logD(TAG,"准备向蓝牙设备发送读命令");
+            characteristic.setValue(optValue);
+            boolean state = bluetoothGatt.readCharacteristic(characteristic);
+            if(state){
+                LogUtils.logD(TAG,"读命令发送成功");
+            }else {
+                LogUtils.logD(TAG,"读命令发送失败");
+            }
+        }
+    }
+    /**
+     * 向蓝牙设备写入数据或者单纯的发送指令
+     * @param bluetoothGatt
+     * @param serviceUUid 服务UUID
+     * @param characteristicUUid 特征UUID
+     * @param optValue 要发送的特殊数据指令
+     */
+    public void sendOrderToBTDeviceWrite(BluetoothGatt bluetoothGatt, UUID serviceUUid, @NonNull UUID characteristicUUid, byte[] optValue){
+        BluetoothGattCharacteristic characteristic = getBTGattCharForUUid(bluetoothGatt, serviceUUid,characteristicUUid);
+        if (characteristic != null) {
+            characteristic.setValue(optValue);
+            boolean state = bluetoothGatt.writeCharacteristic(characteristic);
+            if(state){
+                LogUtils.logD(TAG,"写命令发送成功");
+            }else {
+                LogUtils.logD(TAG,"写命令发送失败");
+            }
+        }
+    }
+    /**
+     * 向蓝牙设备发送通知命令
+     * @param bluetoothGatt
+     * @param serviceUUid 服务UUID
+     * @param characteristicUUid 特征UUID
+     */
+    public void sendOrderToBTDeviceNotify(BluetoothGatt bluetoothGatt, UUID serviceUUid, @NonNull UUID characteristicUUid){
+        BluetoothGattCharacteristic characteristic = getBTGattCharForUUid(bluetoothGatt, serviceUUid,characteristicUUid);
+        if (characteristic != null) {
+            boolean state = bluetoothGatt.setCharacteristicNotification(characteristic, true);
+            if(state){
+                LogUtils.logD(TAG,"通知命令发送成功");
+            }else {
+                LogUtils.logD(TAG,"通知命令发送失败");
+            }
+
+            List<BluetoothGattDescriptor> descriptors=characteristic.getDescriptors();
+            for(BluetoothGattDescriptor dp:descriptors){
+                dp.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
+                bluetoothGatt.writeDescriptor(dp);
+            }
+        }
+    }
+    /**
+     * 根据指定的UUID获取蓝牙设备的通道
+     * @param bluetoothGatt
+     * @param serviceUUid 服务UUID
+     * @param characteristicUUid 特征UUID
+     * @return
+     */
+    private BluetoothGattCharacteristic getBTGattCharForUUid(BluetoothGatt bluetoothGatt,UUID serviceUUid, @NonNull UUID characteristicUUid){
+        BluetoothGattCharacteristic characteristics = null;
+        if(bluetoothGatt != null && characteristicUUid != null){
+            if(serviceUUid != null){
+                BluetoothGattService service = bluetoothGatt.getService(serviceUUid);
+                if(service != null){
+                    LogUtils.logD(TAG,"查找到对应服务值:::" + service.toString());
+                    characteristics = service.getCharacteristic(characteristicUUid);
+                    if (characteristics != null) {
+                        LogUtils.logD(TAG, "查找到对应特征:::" + characteristics.toString() + "，对应特征属性:::" + characteristics.getProperties());
+                    }
+                    characteristicUUid = null;
+                    serviceUUid = null;
+                    service = null;
+                }
+            }else {
+                Iterator<BluetoothGattService> iterator = bluetoothGatt.getServices().iterator();
+                BluetoothGattService gattService;
+                BluetoothGattCharacteristic characteristic = null;
+                while (iterator.hasNext()) {
+                    gattService = iterator.next();
+                    characteristic = gattService.getCharacteristic(characteristicUUid);
+                    if (characteristic != null) {
+                        LogUtils.logD(TAG, "查找到对应特征:::" + characteristics.toString() + "，对应特征属性:::" + characteristics.getProperties());
+                        gattService = null;
+                        iterator = null;
+                        characteristicUUid = null;
+                        return characteristic;
+                    }
+                }
+            }
+        }
+        return characteristics;
+    }
+
+
+
+
+
+
+
     /**
      * 连接设备
      * @param btDevice
@@ -396,8 +508,8 @@ public class BlueToothOptionUtils {
         Boolean returnValue = false;
         if(btDevice != null) {
             try {
-                Method createBondMethod = btClass.getDeclaredMethod("createBond",int.class);
-                returnValue = (Boolean) createBondMethod.invoke(btDevice,BluetoothDevice.TRANSPORT_BREDR);
+                Method createBondMethod = btClass.getMethod("createBond");
+                returnValue = (Boolean) createBondMethod.invoke(btDevice);
                 if(returnValue){
                     LogUtils.logD(TAG, "向蓝牙设备发起配对请求成功");
                 }else {
@@ -442,7 +554,6 @@ public class BlueToothOptionUtils {
         }
         return returnValue;
     }
-
     /**
      * 取消配对
      * @param btDevice
@@ -471,7 +582,6 @@ public class BlueToothOptionUtils {
         }
         return returnValue.booleanValue();
     }
-
     /**
      * 发送密码
      * @param btDevice
@@ -501,7 +611,6 @@ public class BlueToothOptionUtils {
         }
         return returnValue.booleanValue();
     }
-
     // 取消用户输入
     public boolean cancelPairingUserInput(Class btClass, BluetoothDevice btDevice) throws Exception {
         Boolean returnValue = false;
@@ -526,7 +635,6 @@ public class BlueToothOptionUtils {
         }
         return returnValue.booleanValue();
     }
-
     /**
      * 确认配对
      * @param btClass
@@ -557,87 +665,6 @@ public class BlueToothOptionUtils {
         }
         return returnValue.booleanValue();
 
-    }
-
-
-
-    /**
-     * 向蓝牙设备发送指令并让蓝牙返回相应数据
-     * @param bluetoothGatt
-     * @param serviceUUid 服务UUID
-     * @param characteristicUUid 特征UUID
-     */
-    public void sendOrderToBTDeviceRead(BluetoothGatt bluetoothGatt,UUID serviceUUid, @NonNull UUID characteristicUUid, byte[] optValue){
-        BluetoothGattCharacteristic characteristic = getBTGattCharForUUid(bluetoothGatt, serviceUUid,characteristicUUid);
-        if(characteristic != null){
-            characteristic.setValue(optValue);
-            boolean state = bluetoothGatt.readCharacteristic(characteristic);
-            if(state){
-
-            }
-        }
-    }
-    /**
-     * 向蓝牙设备写入数据或者单纯的发送指令
-     * @param bluetoothGatt
-     * @param serviceUUid 服务UUID
-     * @param characteristicUUid 特征UUID
-     * @param optValue 要发送的特殊数据指令
-     */
-    public void sendOrderToBTDeviceWrite(BluetoothGatt bluetoothGatt, UUID serviceUUid, @NonNull UUID characteristicUUid, byte[] optValue){
-
-        BluetoothGattCharacteristic characteristic = getBTGattCharForUUid(bluetoothGatt, serviceUUid,characteristicUUid);
-        if (characteristic != null) {
-            characteristic.setValue(optValue);
-            boolean state = bluetoothGatt.writeCharacteristic(characteristic);
-            if(state){
-
-            }
-        }
-    }
-
-
-
-    /**
-     * 根据指定的UUID获取蓝牙设备的通道
-     * @param bluetoothGatt
-     * @param serviceUUid 服务UUID
-     * @param characteristicUUid 特征UUID
-     * @return
-     */
-    private BluetoothGattCharacteristic getBTGattCharForUUid(BluetoothGatt bluetoothGatt,UUID serviceUUid, @NonNull UUID characteristicUUid){
-        BluetoothGattCharacteristic characteristics = null;
-        if(bluetoothGatt != null && characteristicUUid != null){
-            if(serviceUUid != null){
-                BluetoothGattService service = bluetoothGatt.getService(serviceUUid);
-                if(service != null){
-                    LogUtils.logD(TAG,"查找到对应服务值:::" + service.toString());
-                    characteristics = service.getCharacteristic(characteristicUUid);
-                    if (characteristics != null) {
-                        LogUtils.logD(TAG, "查找到对应特征值:::" + characteristicUUid.toString());
-                    }
-                    characteristicUUid = null;
-                    serviceUUid = null;
-                    service = null;
-                }
-            }else {
-                Iterator<BluetoothGattService> iterator = bluetoothGatt.getServices().iterator();
-                BluetoothGattService gattService;
-                BluetoothGattCharacteristic characteristic = null;
-                while (iterator.hasNext()) {
-                    gattService = iterator.next();
-                    characteristic = gattService.getCharacteristic(characteristicUUid);
-                    if (characteristic != null) {
-                        LogUtils.logD(TAG,"查找到对应特征值:::" + characteristicUUid.toString());
-                        gattService = null;
-                        iterator = null;
-                        characteristicUUid = null;
-                        return characteristic;
-                    }
-                }
-            }
-        }
-        return characteristics;
     }
 
 }
