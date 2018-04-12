@@ -99,7 +99,7 @@ public class BlueToothDeviceStateCallback  extends BluetoothGattCallback {
     private void reConBTDevice(BluetoothDevice bluetoothDevice){
         if(bluetoothDevice != null && !TextUtils.isEmpty(bluetoothDevice.getAddress()) && !isConnecting){
             this.bluetoothDevice = bluetoothDevice;
-            bluetoothDevice.connectGatt(Setting.APPLICATION_CONTEXT,true,this);
+            bluetoothDevice.connectGatt(Setting.APPLICATION_CONTEXT,false,this);
             isConnecting = true;
             LogUtils.logD(TAG,"开始连接蓝牙设备");
         }
@@ -131,7 +131,7 @@ public class BlueToothDeviceStateCallback  extends BluetoothGattCallback {
             LogUtils.logD(TAG,"连接蓝牙设备成功");
             isConnectSuccess = true;
             blueToothOptionsCallback.connectBTDeviceSuccess(gatt);
-            //获取蓝牙设备信息
+            //获取蓝牙设备信息，启动服务发现
             gatt.discoverServices();
         } else if (status == BluetoothGatt.GATT_FAILURE && newState == BluetoothProfile.STATE_DISCONNECTED) {
             isConnectSuccess = false;

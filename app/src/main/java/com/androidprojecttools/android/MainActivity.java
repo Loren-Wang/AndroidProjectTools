@@ -33,7 +33,8 @@ public class MainActivity extends AppCompatActivity {
         Setting.IS_DEBUGGABLE = true;
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            requestPermissions(new String[]{Manifest.permission.BLUETOOTH, Manifest.permission.BLUETOOTH_ADMIN, Manifest.permission.ACCESS_COARSE_LOCATION}, 0);
+            requestPermissions(new String[]{Manifest.permission.BLUETOOTH, Manifest.permission.BLUETOOTH_ADMIN
+                    , Manifest.permission.ACCESS_COARSE_LOCATION}, 0);
         }
 
     }

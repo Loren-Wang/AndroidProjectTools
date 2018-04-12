@@ -18,10 +18,12 @@ import android.support.annotation.NonNull;
 import android.support.annotation.RequiresPermission;
 import android.support.v4.content.ContextCompat;
 import android.text.TextUtils;
+import android.util.Log;
 
 import com.adnroidprojecttools.common.LogUtils;
 import com.adnroidprojecttools.common.Setting;
 
+import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -144,11 +146,6 @@ public class BlueToothOptionUtils {
                         return;
                     }
                 }
-                //注册广播接收器
-                blueToothDeviceReceiver = new BlueToothDeviceReceiver(blueToothOptionUtils,deviceMap);
-                Setting.APPLICATION_CONTEXT.registerReceiver(blueToothDeviceReceiver, new IntentFilter(BluetoothDevice.ACTION_FOUND));
-                Setting.APPLICATION_CONTEXT.registerReceiver(blueToothDeviceReceiver, new IntentFilter(BluetoothAdapter.ACTION_DISCOVERY_STARTED));
-                Setting.APPLICATION_CONTEXT.registerReceiver(blueToothDeviceReceiver, new IntentFilter(BluetoothAdapter.ACTION_DISCOVERY_FINISHED));
                 //没有在已绑定设备中找到，开启设备扫描
                 mBluetoothAdapter.startDiscovery();
                 LogUtils.logD(TAG,"正式开启蓝牙设备扫描");
@@ -166,8 +163,6 @@ public class BlueToothOptionUtils {
         private synchronized void stopScan(){
             if(isSupportBT && isEnableBT && isScan){
                 LogUtils.logD(TAG,"蓝牙设备停止扫描准备");
-                //反注册广播接收器，同时销毁广播接收器
-                Setting.APPLICATION_CONTEXT.unregisterReceiver(blueToothDeviceReceiver);
                 blueToothDeviceReceiver = null;
                 mBluetoothAdapter.cancelDiscovery();
                 isScan = false;
@@ -213,7 +208,28 @@ public class BlueToothOptionUtils {
                 LogUtils.logD(TAG,"蓝牙设备未开启");
                 isEnableBT = false;
             }
+
+            //注册广播接收器
+            blueToothDeviceReceiver = new BlueToothDeviceReceiver(this,deviceMap);
+            // 注册Receiver来获取蓝牙设备相关的结果
+            String ACTION_PAIRING_REQUEST = "android.bluetooth.device.action.PAIRING_REQUEST";
+            IntentFilter intent = new IntentFilter();
+            intent.addAction(BluetoothDevice.ACTION_FOUND);// 用BroadcastReceiver来取得搜索结果
+            intent.addAction(BluetoothDevice.ACTION_BOND_STATE_CHANGED);
+            intent.addAction(BluetoothDevice.ACTION_PAIRING_REQUEST);
+            intent.addAction(BluetoothDevice.ACTION_CLASS_CHANGED);
+            intent.addAction(BluetoothDevice.ACTION_UUID);
+            intent.addAction(BluetoothDevice.ACTION_ACL_CONNECTED);
+            intent.addAction(BluetoothDevice.ACTION_ACL_DISCONNECT_REQUESTED);
+            intent.addAction(BluetoothDevice.ACTION_ACL_DISCONNECTED);
+            intent.addAction(ACTION_PAIRING_REQUEST);
+            intent.addAction(BluetoothAdapter.ACTION_SCAN_MODE_CHANGED);
+            intent.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
+            Setting.APPLICATION_CONTEXT.registerReceiver(blueToothDeviceReceiver, intent);
+            //传递蓝牙适配
             blueToothDeviceStateCallback.setBluetoothAdapter(mBluetoothAdapter);
+
+
         }else {
             LogUtils.logD(TAG,"设备未拥有蓝牙权限以及定位，需要申请蓝牙权限以及定位权限");
         }
@@ -235,8 +251,9 @@ public class BlueToothOptionUtils {
         return blueToothOptionsCallback;
     }
 
-
-
+    public BlueToothDeviceStateCallback getBlueToothDeviceStateCallback() {
+        return blueToothDeviceStateCallback;
+    }
 
     /**
      * 开启蓝牙
@@ -325,11 +342,19 @@ public class BlueToothOptionUtils {
         }
         if(bluetoothDevice.getBondState() == BluetoothDevice.BOND_NONE){
             LogUtils.logD(TAG,"该蓝牙设备未绑定，需要先绑定设备");
-            setPin(bluetoothDevice.getClass(),bluetoothDevice,"0");
-            boolean bondState = createBond(bluetoothDevice.getClass(),bluetoothDevice);
-            if(bondState){
-                blueToothDeviceStateCallback.connectBlueToothDevice(bluetoothDevice,true);
+
+            byte[] pinBytes;
+            try {
+                pinBytes = "0000".getBytes("UTF-8");
+            } catch (UnsupportedEncodingException uee) {
+                Log.e(TAG, "UTF-8 not supported?!?");  // this should not happen
+                return null;
             }
+            if (pinBytes.length <= 0 || pinBytes.length > 16) {
+                return null;
+            }
+
+            createBond(bluetoothDevice.getClass(), bluetoothDevice);
         }else {
             blueToothDeviceStateCallback.connectBlueToothDevice(bluetoothDevice,true);
         }
@@ -367,22 +392,22 @@ public class BlueToothOptionUtils {
      * @return
      * @throws Exception
      */
-    private boolean createBond(Class btClass,BluetoothDevice btDevice){
+    public boolean createBond(Class btClass, BluetoothDevice btDevice){
         Boolean returnValue = false;
         if(btDevice != null) {
             try {
-                Method createBondMethod = btClass.getMethod("createBond");
-                returnValue = (Boolean) createBondMethod.invoke(btDevice);
+                Method createBondMethod = btClass.getDeclaredMethod("createBond",int.class);
+                returnValue = (Boolean) createBondMethod.invoke(btDevice,BluetoothDevice.TRANSPORT_BREDR);
                 if(returnValue){
-                    LogUtils.logD(TAG, "蓝牙设备绑定成功");
+                    LogUtils.logD(TAG, "向蓝牙设备发起配对请求成功");
                 }else {
-                    LogUtils.logD(TAG, "蓝牙设备绑定失败");
+                    LogUtils.logD(TAG, "向蓝牙设备发起配对请求失败");
                 }
             } catch (Exception e) {
                 if (e != null && !TextUtils.isEmpty(e.getMessage())) {
-                    LogUtils.logE(TAG, "蓝牙设备绑定失败:::" + e.getMessage());
+                    LogUtils.logE(TAG, "向蓝牙设备发起配对请求失败:::" + e.getMessage());
                 } else {
-                    LogUtils.logE(TAG, "蓝牙设备绑定失败");
+                    LogUtils.logE(TAG, "向蓝牙设备发起配对请求失败");
                 }
             }
         }else{
@@ -453,7 +478,7 @@ public class BlueToothOptionUtils {
      * @param str
      * @return
      */
-    public boolean setPin(Class btClass,BluetoothDevice btDevice, String str){
+    public boolean setPin(Class btClass, BluetoothDevice btDevice, String str){
         Boolean returnValue = false;
         if(btDevice != null) {
             try {
@@ -477,6 +502,62 @@ public class BlueToothOptionUtils {
         return returnValue.booleanValue();
     }
 
+    // 取消用户输入
+    public boolean cancelPairingUserInput(Class btClass, BluetoothDevice btDevice) throws Exception {
+        Boolean returnValue = false;
+        if(btDevice != null) {
+            try {
+                Method createBondMethod = btClass.getMethod("cancelPairingUserInput");
+                returnValue = (Boolean) createBondMethod.invoke(btDevice);
+                if(returnValue){
+                    LogUtils.logE(TAG, "蓝牙设备取消配对成功");
+                }else {
+                    LogUtils.logE(TAG, "蓝牙设备取消配对失败");
+                }
+            } catch (Exception e) {
+                if (e != null && !TextUtils.isEmpty(e.getMessage())) {
+                    LogUtils.logE(TAG, "蓝牙设备取消配对失败:::" + e.getMessage());
+                } else {
+                    LogUtils.logE(TAG, "蓝牙设备取消配对失败");
+                }
+            }
+        }else{
+            LogUtils.logE(TAG,"传入的蓝牙设备参数为空");
+        }
+        return returnValue.booleanValue();
+    }
+
+    /**
+     * 确认配对
+     * @param btClass
+     * @param device
+     * @param isConfirm
+     * @return
+     */
+    public boolean setPairingConfirmation(Class<?> btClass,BluetoothDevice device,boolean isConfirm){
+        Boolean returnValue = false;
+        if(device != null) {
+            try {
+                Method createBondMethod = btClass.getDeclaredMethod("setPairingConfirmation",boolean.class);
+                returnValue = (Boolean) createBondMethod.invoke(device,isConfirm);
+                if(returnValue){
+                    LogUtils.logD(TAG, "蓝牙设备确认配对成功");
+                }else {
+                    LogUtils.logD(TAG, "蓝牙设备确认配对失败");
+                }
+            } catch (Exception e) {
+                if (e != null && !TextUtils.isEmpty(e.getMessage())) {
+                    LogUtils.logE(TAG, "蓝牙设备确认配对失败:::" + e.getMessage());
+                } else {
+                    LogUtils.logE(TAG, "蓝牙设备确认配对失败");
+                }
+            }
+        }else{
+            LogUtils.logE(TAG,"传入的蓝牙设备参数为空");
+        }
+        return returnValue.booleanValue();
+
+    }
 
 
 
@@ -504,6 +585,7 @@ public class BlueToothOptionUtils {
      * @param optValue 要发送的特殊数据指令
      */
     public void sendOrderToBTDeviceWrite(BluetoothGatt bluetoothGatt, UUID serviceUUid, @NonNull UUID characteristicUUid, byte[] optValue){
+
         BluetoothGattCharacteristic characteristic = getBTGattCharForUUid(bluetoothGatt, serviceUUid,characteristicUUid);
         if (characteristic != null) {
             characteristic.setValue(optValue);
