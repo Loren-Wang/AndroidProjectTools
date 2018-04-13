@@ -1,4 +1,4 @@
-package com.adnroidprojecttools;
+package com.androidprojecttools;
 
 import org.junit.Test;
 

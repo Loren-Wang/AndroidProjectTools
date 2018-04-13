@@ -1,4 +1,4 @@
-package com.adnroidprojecttools.bluetooth;
+package com.androidprojecttools.bluetooth;
 
 import android.Manifest;
 import android.bluetooth.BluetoothAdapter;
@@ -21,9 +21,9 @@ import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
 import android.text.TextUtils;
 
-import com.adnroidprojecttools.common.DigitalTransUtils;
-import com.adnroidprojecttools.common.LogUtils;
-import com.adnroidprojecttools.common.Setting;
+import com.androidprojecttools.common.DigitalTransUtils;
+import com.androidprojecttools.common.LogUtils;
+import com.androidprojecttools.common.Setting;
 
 import java.util.HashMap;
 import java.util.Iterator;

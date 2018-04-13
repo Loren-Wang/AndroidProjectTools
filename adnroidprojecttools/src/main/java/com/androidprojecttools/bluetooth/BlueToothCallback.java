@@ -1,4 +1,4 @@
-package com.adnroidprojecttools.bluetooth;
+package com.androidprojecttools.bluetooth;
 
 import android.bluetooth.BluetoothDevice;
 

@@ -11,10 +11,10 @@ import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 
-import com.adnroidprojecttools.bluetooth.BlueToothCallback;
-import com.adnroidprojecttools.bluetooth.BlueToothUtils;
-import com.adnroidprojecttools.common.LogUtils;
-import com.adnroidprojecttools.common.Setting;
+import com.androidprojecttools.bluetooth.BlueToothCallback;
+import com.androidprojecttools.bluetooth.BlueToothUtils;
+import com.androidprojecttools.common.LogUtils;
+import com.androidprojecttools.common.Setting;
 
 import java.util.ArrayList;
 import java.util.List;

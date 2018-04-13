@@ -1,4 +1,4 @@
-package com.adnroidprojecttools;
+package com.androidprojecttools;
 
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;

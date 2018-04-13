@@ -1,4 +1,4 @@
-package com.adnroidprojecttools.bluetooth;
+package com.androidprojecttools.bluetooth;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -10,7 +10,7 @@ import android.os.Message;
 import android.text.TextUtils;
 import android.util.Log;
 
-import com.adnroidprojecttools.common.LogUtils;
+import com.androidprojecttools.common.LogUtils;
 
 /**
  * Created by LorenWang on 2018/4/13.

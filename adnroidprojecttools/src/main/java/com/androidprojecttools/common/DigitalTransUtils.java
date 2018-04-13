@@ -1,4 +1,4 @@
-package com.adnroidprojecttools.common;
+package com.androidprojecttools.common;
 
 /**
  * Created by LorenWang on 2018/4/11.
