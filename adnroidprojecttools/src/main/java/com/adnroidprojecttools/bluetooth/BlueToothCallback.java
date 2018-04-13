@@ -78,6 +78,12 @@ public interface BlueToothCallback {
      * 到任何数据，当然了如果是同一通道返回的话可以不用管这个回调也不用发送特征通道改变的通知监听命令
      */
     void onCharacteristicForNotifyWriteOrderReceiveData();
+    /**
+     * 当向蓝牙设备发送要接收某一个特征值得通知命令后蓝牙设备返回的数据，也就是调用这个命令之后蓝牙设备返回是否允许通知返回
+     * 一般情况下需要在这个方法被调用后进行读写命令操作，否则一旦出现发送读取数据命令和返回命令的通道不一致的情况就会导致无法接收
+     * 到任何数据，当然了如果是同一通道返回的话可以不用管这个回调也不用发送特征通道改变的通知监听命令
+     */
+    void onCharacteristicForNotifyReadOrderReceiveData();
 
     /**
      * 发送指定的特征通道通知监听后这个指定的特征通道状态或值改变时的回调
@@ -88,4 +94,5 @@ public interface BlueToothCallback {
      * 当有效服务被检测完成后的回调，在执行了这个方法后才允许发送读写或者通知命令
      */
     void allowSendOrderToBTDevice();
+
 }

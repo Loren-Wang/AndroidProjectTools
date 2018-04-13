@@ -2,19 +2,17 @@ package com.androidprojecttools.android;
 
 import android.Manifest;
 import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothGatt;
-import android.bluetooth.BluetoothGattCharacteristic;
-import android.bluetooth.BluetoothGattDescriptor;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
-import android.util.Log;
 
-import com.adnroidprojecttools.blueToothOptions.BlueToothOptionUtils;
-import com.adnroidprojecttools.blueToothOptions.BlueToothOptionsCallback;
+import com.adnroidprojecttools.bluetooth.BlueToothCallback;
+import com.adnroidprojecttools.bluetooth.BlueToothUtils;
 import com.adnroidprojecttools.common.LogUtils;
 import com.adnroidprojecttools.common.Setting;
 
@@ -49,7 +47,7 @@ public class MainActivity extends AppCompatActivity {
         List<String> successPermissionList = new ArrayList<>();
         List<String> failPermissionList = new ArrayList<>();
 
-        if(grantResults.length > 0 && grantResults.length == permissions.length) {
+        if (grantResults.length > 0 && grantResults.length == permissions.length) {
             for (int i = 0; i < permissions.length; i++) {
                 if (grantResults[i] == PackageManager.PERMISSION_GRANTED) {
                     successPermissionList.add(permissions[i]);
@@ -59,114 +57,121 @@ public class MainActivity extends AppCompatActivity {
                     failPermissionList.add(permissions[i]);
                 }
             }
-        }else {
-            for(int i = 0 ; i < permissions.length ; i++){
+        } else {
+            for (int i = 0; i < permissions.length; i++) {
                 failPermissionList.add(permissions[i]);
             }
         }
-        try {//只要有一个权限不通过则都失败
-            if(failPermissionList.size() == 0){
-                final UUID serviceUUid = CarAirBlueToothInfo.getInstance().paramUUid("0001");
-                final UUID characteristicUUid02 = CarAirBlueToothInfo.getInstance().paramUUid("0002");
-                final UUID characteristicUUid03 = CarAirBlueToothInfo.getInstance().paramUUid("0003");
-                BlueToothOptionUtils.getInstance().setBlueToothOptionsCallback(new BlueToothOptionsCallback() {
-                    @Override
-                    protected void connectBTDeviceSuccess(BluetoothGatt bluetoothGatt) {
+        if (failPermissionList.size() == 0) {
+            final UUID serviceUUid = CarAirBlueToothInfo.getInstance().paramUUid("0001");
+            final UUID characteristicUUid02 = CarAirBlueToothInfo.getInstance().paramUUid("0002");
+            final UUID characteristicUUid03 = CarAirBlueToothInfo.getInstance().paramUUid("0003");
 
+            final int SEND_ORDER_FOR_WRITE_GET_DATA = 0;
+            final Handler handler = new Handler() {
+                @Override
+                public void handleMessage(Message msg) {
+                    super.handleMessage(msg);
+                    switch (msg.what) {
+                        case SEND_ORDER_FOR_WRITE_GET_DATA:
+                            BlueToothUtils.getInstance().sendOrderToBTDeviceWrite(serviceUUid, characteristicUUid02
+                                    , new byte[]{0x55, 0x01, 0x01, 0x02});
+                            sendEmptyMessageDelayed(SEND_ORDER_FOR_WRITE_GET_DATA, 3000);
+                            break;
+                        default:
+                            break;
                     }
+                }
+            };
 
-                    @Override
-                    protected void connectBTDeviceFail(BluetoothGatt bluetoothGatt) {
+            BlueToothUtils.getInstance().setBlueToothCallback(new BlueToothCallback() {
+                @Override
+                public void enableBT() {
 
+                }
+
+                @Override
+                public void disableBT() {
+
+                }
+
+                @Override
+                public void scaningBTDevice(boolean isBondScan) {
+
+                }
+
+                @Override
+                public void stopScanBtDeveice(boolean isBondScan) {
+
+                }
+
+                @Override
+                public void scanBTDeviceResult(BluetoothDevice bluetoothDevice) {
+                    if (!TextUtils.isEmpty(bluetoothDevice.getAddress()) &&
+                            bluetoothDevice.getAddress().substring(0, 8).equals("F9:CA:06")) {
+                        BlueToothUtils.getInstance().connectBTClose(bluetoothDevice);
+                        BlueToothUtils.getInstance().connectBTDevice(bluetoothDevice);
+                        BlueToothUtils.getInstance().stopScan();
                     }
+                }
 
-                    @Override
-                    protected void reConnectBTDevice() {
+                @Override
+                public void connectBTDeviceSuccess() {
 
-                    }
+                }
 
-                    @Override
-                    protected void connectBTClose(BluetoothGatt bluetoothGatt) {
+                @Override
+                public void connectBTDeviceRecon() {
 
-                    }
+                }
 
-                    @Override
-                    protected boolean scanResultJudge(BluetoothDevice bluetoothDevice) {
-                        if(!TextUtils.isEmpty(bluetoothDevice.getAddress()) &&
-                                bluetoothDevice.getAddress().substring(0,8).equals("F9:CA:06")){
-                            BlueToothOptionUtils.getInstance().connectBTClose(bluetoothDevice).connectBTDevice(bluetoothDevice);
-                            BlueToothOptionUtils.getInstance().stopScan();
-                            return true;
-                        }
-                        return false;
-                    }
+                @Override
+                public void connectBTDeviceFail() {
 
-                    @Override
-                    protected void onBTDeviceReadCallback(BluetoothGatt bluetoothGatt, BluetoothGattCharacteristic characteristic) {
-//                         //小米运动步数
-//                        int stepNum = characteristic.getValue()[3] << 24 | (characteristic.getValue()[2] & 0xFF) << 16 | (characteristic.getValue()[1] & 0xFF) << 8 | (characteristic.getValue()[0] & 0xFF);
+                }
 
-                        int flag = characteristic.getProperties();
-                        int format = -1;
-                        if ((flag & 0x01) != 0) {
-                            format = BluetoothGattCharacteristic.FORMAT_UINT16;
-                            Log.d(TAG, "Heart rate format UINT16.");
-                        } else {
-                            format = BluetoothGattCharacteristic.FORMAT_UINT8;
-                            Log.d(TAG, "Heart rate format UINT8.");
-                        }
-                        final int heartRate = characteristic.getIntValue(format, 1);
-                    }
+                @Override
+                public void connectBTDeviceClose() {
 
-                    @Override
-                    protected void onBTDeviceWriteCallback(BluetoothGatt bluetoothGatt, BluetoothGattCharacteristic characteristic) {
-                    }
+                }
 
-                    @Override
-                    protected void onBTDeviceDescriptorWriteCallback(BluetoothGatt bluetoothGatt, BluetoothGattDescriptor descriptor) {
+                @Override
+                public void onCharacteristicForWriteOrderReceiveData() {
 
-                    }
+                }
 
-                    @Override
-                    protected void onBTDeviceDescriptorReadCallback(BluetoothGatt bluetoothGatt, BluetoothGattDescriptor descriptor) {
-                        boolean state = bluetoothGatt.readCharacteristic(descriptor.getCharacteristic());
-                        if(state){
+                @Override
+                public void onCharacteristicForReadOrderReceiveData() {
 
-                        }
-                    }
+                }
 
-                    @Override
-                    protected void allowSenOrderToBTDevice(final BluetoothGatt bluetoothGatt) {
-                        BlueToothOptionUtils.getInstance().sendOrderToBTDeviceNotify(bluetoothGatt,serviceUUid,characteristicUUid03);
+                @Override
+                public void onCharacteristicForNotifyWriteOrderReceiveData() {
+                    handler.sendEmptyMessage(SEND_ORDER_FOR_WRITE_GET_DATA);
+                }
 
-                        new Thread(new Runnable() {
-                            @Override
-                            public void run() {
-                                while (true) {
-                                    BlueToothOptionUtils.getInstance().sendOrderToBTDeviceWrite(bluetoothGatt, serviceUUid, characteristicUUid02
-                                            , new byte[]{0x55, 0x01, 0x01, 0x02});
-                                    try {
-                                        Thread.sleep(1000);
-                                    } catch (InterruptedException e) {
-                                        e.printStackTrace();
-                                    }
-                                }
-                            }
-                        }).start();
-                    }
+                @Override
+                public void onCharacteristicForNotifyReadOrderReceiveData() {
 
-                }).enableBlueTooth().startScan();
+                }
+
+                @Override
+                public void onCharacteristicChangeForNotifyOrderReceiveData() {
+
+                }
+
+                @Override
+                public void allowSendOrderToBTDevice() {
+                    BlueToothUtils.getInstance().sendOrderToBTDeviceNotify(serviceUUid, characteristicUUid03);
+                }
+            });
+            BlueToothUtils.getInstance().enableBlueTooth();
+            try {
+                BlueToothUtils.getInstance().startScanBTDevice(null, null, false);
+            } catch (Exception e) {
+                e.printStackTrace();
             }
-        }catch (Exception e){
-            LogUtils.logE(TAG,e.getMessage());
-        }finally {
-            successPermissionList.clear();
-            failPermissionList.clear();
-            successPermissionList = null;
-            failPermissionList = null;
+
         }
-
-        return;
     }
-
 }

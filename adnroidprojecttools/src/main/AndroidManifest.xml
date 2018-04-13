@@ -5,27 +5,6 @@
     <uses-permission android:name="android.permission.BLUETOOTH" />
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-
-    <application>
-        <receiver
-            android:name=".bluetooth.BlueToothReceicer"
-            android:enabled="true"
-            android:exported="true" >
-            <intent-filter>
-                <action android:name="android.bluetooth.device.action.FOUND"/>
-                <action android:name="android.bluetooth.device.action.BOND_STATE_CHANGED"/>
-                <action android:name="android.bluetooth.device.action.PAIRING_REQUEST"/>
-                <action android:name="android.bluetooth.device.action.CLASS_CHANGED"/>
-                <action android:name="android.bluetooth.device.action.UUID"/>
-                <action android:name="android.bluetooth.device.action.ACL_CONNECTED"/>
-                <action android:name="android.bluetooth.device.action.ACL_DISCONNECT_REQUESTED"/>
-                <action android:name="android.bluetooth.device.action.ACTION_ACL_DISCONNECTED"/>
-                <action android:name="android.bluetooth.device.action.PAIRING_REQUEST"/>
-                <action android:name="android.bluetooth.device.action.SCAN_MODE_CHANGED"/>
-                <action android:name="android.bluetooth.device.action.STATE_CHANGED"/>
-            </intent-filter>
-
-        </receiver>
-    </application>
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 
 </manifest>
