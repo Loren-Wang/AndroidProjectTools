@@ -120,15 +120,11 @@ public class MainActivity extends AppCompatActivity {
 
                     @Override
                     protected void onBTDeviceWriteCallback(BluetoothGatt bluetoothGatt, BluetoothGattCharacteristic characteristic) {
-//                        //小米运动步数
-//                        int stepNum = characteristic.getValue()[3] << 24 | (characteristic.getValue()[2] & 0xFF) << 16 | (characteristic.getValue()[1] & 0xFF) << 8 | (characteristic.getValue()[0] & 0xFF);
-                        allowSenOrderToBTDevice(bluetoothGatt);
                     }
 
                     @Override
                     protected void onBTDeviceDescriptorWriteCallback(BluetoothGatt bluetoothGatt, BluetoothGattDescriptor descriptor) {
-                        BlueToothOptionUtils.getInstance().sendOrderToBTDeviceWrite(bluetoothGatt,serviceUUid,characteristicUUid02
-                                , new byte[]{0x55,0x01,0x01,0x02});
+
                     }
 
                     @Override
@@ -140,8 +136,23 @@ public class MainActivity extends AppCompatActivity {
                     }
 
                     @Override
-                    protected void allowSenOrderToBTDevice(BluetoothGatt bluetoothGatt) {
+                    protected void allowSenOrderToBTDevice(final BluetoothGatt bluetoothGatt) {
                         BlueToothOptionUtils.getInstance().sendOrderToBTDeviceNotify(bluetoothGatt,serviceUUid,characteristicUUid03);
+
+                        new Thread(new Runnable() {
+                            @Override
+                            public void run() {
+                                while (true) {
+                                    BlueToothOptionUtils.getInstance().sendOrderToBTDeviceWrite(bluetoothGatt, serviceUUid, characteristicUUid02
+                                            , new byte[]{0x55, 0x01, 0x01, 0x02});
+                                    try {
+                                        Thread.sleep(1000);
+                                    } catch (InterruptedException e) {
+                                        e.printStackTrace();
+                                    }
+                                }
+                            }
+                        }).start();
                     }
 
                 }).enableBlueTooth().startScan();
