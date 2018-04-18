@@ -7,6 +7,7 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.os.Handler;
 import android.os.Message;
+import android.support.annotation.IntDef;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
@@ -22,10 +23,10 @@ import java.util.List;
  * 创建人：王亮（Loren wang）
  * 功能作用：九宫格手势滑动操作
  * 思路：首先制定好九个圆圈的位置，以及相应的中心坐标，还有滑动的有效半径，显示中心圆半径
- *      1、还需要设置当圆圈被选中、未选中、以及选中错误的情况下的颜色显示
+ *      1、还需要设置当圆圈被选中、未选中、以及选中错误的情况下的内圈以及外圈的颜色
  *      2、设置显示模式
- *           ①、中心圆实心，外层圆空心，滑动时中心圆变色，外围出现指定宽度的边框，连接线从中心点出来，此模式下需要传入边框宽度
- *           ②、中心圆空心，外层圆实心，滑动时外层圆直接变色，中心出现和外层圆相同颜色的圆点，连接线从中心点出来，此模式需要传入选中时中心圆半径
+ *           ①、内圈实心，外圈空心带边框，滑动时内外圈变色，连接线从中心点出来，此模式下需要传入边框宽度
+ *           ②、内圈实心，外圈实心，未选中的时候内圈显示，外圈不显示，滑动时外圈显示，连接线从中心点出来
  *           ③、后续模式待设计
  *      3、是否要显示绘制轨迹
  *      4、连接线宽度、颜色
@@ -34,7 +35,7 @@ import java.util.List;
  * 方法：1、释放所有变量
  *      2、重置显示到最初显示状态
  *      3、设置有效半径以及中心圆半径
- *      4、设置圆圈被选中、未选中、以及选中错误下的颜色显示
+ *      4、设置圆圈被选中、未选中、以及选中错误下的内圈以及外圈的颜色
  *      5、设置显示模式
  *      6、设置是否要显示轨迹
  *      7、设置连接线颜色、宽度
@@ -45,27 +46,33 @@ import java.util.List;
  */
 
 public class SudokuSwipeGesturesView extends View {
-    private final int CIRCLE_SHOW_TYPE_1 = 1;//显示模式1
-    private final int CIRCLE_SHOW_TYPE_2 = 2;//显示模式2
+    private final int CIRCLE_SHOW_TYPE_1 = 1;//显示模式1,内圈实心，外圈空心带边框，滑动时内外圈变色，连接线从中心点出来，此模式下需要传入边框宽度
+    private final int CIRCLE_SHOW_TYPE_2 = 2;//显示模式2,内圈实心，外圈实心，未选中的时候内圈显示，外圈不显示，滑动时外圈显示，连接线从中心点出来
 
     private int circleEffectiveRadius = 0;//圆圈的有效半径
-    private int circleCenterRadius = 0;//圆圈的中心半径
-    private int circleBorderWidth = 0;//圆圈边框宽度
-    private int circleSelectedColor = Color.WHITE;//圆圈的选中颜色
-    private int circleUnSelectedColor = Color.WHITE;//圆圈的未选中颜色
-    private int circleSelectedErrorColor = Color.WHITE;//圆圈的选中移除颜色
+    private int circleInnerRingRadius = 0;//圆圈的内圈半径
+    private int circleOuterRingRadius = 0;//圆圈的外圈半径
+    private int circleOuterRingBorderWidth = 0;//圆圈的外圈的边框宽度
+    private int circleInnerRingSelectedColor = Color.WHITE;//圆圈内圈选中颜色
+    private int circleInnerRingUnSelectedColor = Color.WHITE;//圆圈内圈未选中颜色
+    private int circleInnerRingErrorColor = Color.WHITE;//圆圈内圈错误颜色
+    private int circleOuterRingSelectedColor = Color.WHITE;//圆圈外圈选中颜色
+    private int circleOuterRingUnSelectedColor = Color.WHITE;//圆圈外圈未选中颜色
+    private int circleOuterRingErrorColor = Color.WHITE;//圆圈外圈错误颜色
     private int circleShowType = CIRCLE_SHOW_TYPE_1;//圆圈显示模式
     private boolean isShowTrack = true;//是否显示绘制轨迹
+    private int connectingLineColor = Color.WHITE;//连接线链接时颜色
+    private int connectingLineErrorColor = Color.WHITE;//连接线错误的时候的颜色
     private int connectingLineWidth = 0;//连接线宽度
 
 
     private List<CircleInfo> circleInfoList = new ArrayList<>();//圆圈集合,存储横向排列
-    private Paint circleSelectCenterPaint = new Paint();//圆圈被选中的时候的中心圆的画笔
-    private Paint circleSelectBorderPaint = new Paint();//圆圈被选中的时候中心圆的画笔
-    private Paint circleUnSelectCenterPaint = new Paint();//圆圈未选中的时候的中心圆的画笔
-    private Paint circleUnSelectBorderPaint = new Paint();//圆圈未选中的时候中心圆的画笔
-    private Paint circleSelectErrorCenterPaint = new Paint();//圆圈选中错误的时候的中心圆的画笔
-    private Paint circleSelectErrorBorderPaint = new Paint();//圆圈选中错误的时候中心圆的画笔
+    private Paint circleInnerRingSelectedPaint = new Paint();//圆圈被选中的时候的中心圆的画笔
+    private Paint circleInnerRingUnSelectedPaint = new Paint();//圆圈未选中的时候的中心圆的画笔
+    private Paint circleInnerRingErrorPaint = new Paint();//圆圈选中错误的时候的中心圆的画笔
+    private Paint circleOuterRingSelectedPaint = new Paint();//圆圈被选中的时候中心圆的画笔
+    private Paint circleOuterRingUnSelectPaint = new Paint();//圆圈未选中的时候中心圆的画笔
+    private Paint circleOuterRingErrorPaint = new Paint();//圆圈选中错误的时候中心圆的画笔
     private Paint connectingSelectLinePaint = new Paint();//连接线画笔
     private Paint connectingSelectErrorLinePaint = new Paint();//连接线画笔移除
     private List<CircleInfo> selectCirclePosiList = new ArrayList<>();//选中列表
@@ -114,23 +121,21 @@ public class SudokuSwipeGesturesView extends View {
     private void init(Context context, @Nullable AttributeSet attrs, int defStyleAttr){
         TypedArray attributes = context.obtainStyledAttributes(attrs, R.styleable.SudokuSwipeGesturesView);
         circleEffectiveRadius = attributes.getDimensionPixelOffset(R.styleable.SudokuSwipeGesturesView_circleEffectiveRadius,dip2px(25));
-        circleCenterRadius = attributes.getDimensionPixelOffset(R.styleable.SudokuSwipeGesturesView_circleCenterRadius,dip2px(5));
         isShowTrack = attributes.getBoolean(R.styleable.SudokuSwipeGesturesView_isShowTrack,true);
         connectingLineWidth = attributes.getDimensionPixelOffset(R.styleable.SudokuSwipeGesturesView_connectingLineWidth,dip2px(2));
-        circleBorderWidth = attributes.getDimensionPixelOffset(R.styleable.SudokuSwipeGesturesView_circleBorderWidth,dip2px(1));
-        circleSelectedColor = attributes.getColor(R.styleable.SudokuSwipeGesturesView_circleSelectedColor, Color.WHITE);
-        circleUnSelectedColor = attributes.getColor(R.styleable.SudokuSwipeGesturesView_circleUnSelectedColor,Color.WHITE);
-        circleSelectedErrorColor = attributes.getColor(R.styleable.SudokuSwipeGesturesView_circleSelectedErrorColor,Color.WHITE);
         circleShowType = attributes.getInt(R.styleable.SudokuSwipeGesturesView_circleShowType,CIRCLE_SHOW_TYPE_1);
-
-        setPaint(circleSelectCenterPaint,circleSelectedColor,false,0);
-        setPaint(circleUnSelectCenterPaint,circleUnSelectedColor,false,0);
-        setPaint(circleSelectErrorCenterPaint,circleSelectedErrorColor,false,0);
-        setPaint(circleSelectBorderPaint,circleSelectedColor,true,circleBorderWidth);
-        setPaint(circleUnSelectBorderPaint,circleUnSelectedColor,true,circleBorderWidth);
-        setPaint(circleSelectErrorBorderPaint,circleSelectedErrorColor,true,circleBorderWidth);
-        setPaint(connectingSelectLinePaint,circleSelectedColor,true,connectingLineWidth);
-        setPaint(connectingSelectErrorLinePaint,circleUnSelectedColor,true,connectingLineWidth);
+        circleInnerRingRadius = attributes.getDimensionPixelOffset(R.styleable.SudokuSwipeGesturesView_circleInnerRingRadius,dip2px(10));//圆圈的内圈半径
+        circleOuterRingRadius = attributes.getDimensionPixelOffset(R.styleable.SudokuSwipeGesturesView_circleOuterRingRadius,dip2px(25));//圆圈的外圈半径
+        circleOuterRingBorderWidth = attributes.getDimensionPixelOffset(R.styleable.SudokuSwipeGesturesView_circleOuterRingBorderWidth,dip2px(1));//圆圈的外圈的边框宽度
+        circleInnerRingSelectedColor = attributes.getColor(R.styleable.SudokuSwipeGesturesView_circleInnerRingSelectedColor, Color.WHITE);//圆圈内圈选中颜色
+        circleInnerRingUnSelectedColor = attributes.getColor(R.styleable.SudokuSwipeGesturesView_circleInnerRingUnSelectedColor, Color.WHITE);//圆圈内圈未选中颜色
+        circleInnerRingErrorColor = attributes.getColor(R.styleable.SudokuSwipeGesturesView_circleInnerRingErrorColor, Color.WHITE);//圆圈内圈错误颜色
+        circleOuterRingSelectedColor = attributes.getColor(R.styleable.SudokuSwipeGesturesView_circleOuterRingSelectedColor, Color.WHITE);//圆圈外圈选中颜色
+        circleOuterRingUnSelectedColor = attributes.getColor(R.styleable.SudokuSwipeGesturesView_circleOuterRingUnSelectedColor, Color.WHITE);//圆圈外圈未选中颜色
+        circleOuterRingErrorColor = attributes.getColor(R.styleable.SudokuSwipeGesturesView_circleOuterRingErrorColor, Color.WHITE);//圆圈外圈错误颜色
+        connectingLineColor = attributes.getColor(R.styleable.SudokuSwipeGesturesView_connectingLineColor, Color.WHITE);//连接线链接时颜色
+        connectingLineErrorColor = attributes.getColor(R.styleable.SudokuSwipeGesturesView_connectingLineErrorColor, Color.WHITE);//连接线错误的时候的颜色
+        setCircleShowType(circleShowType);
     }
 
     /**
@@ -171,10 +176,20 @@ public class SudokuSwipeGesturesView extends View {
             if(circleEffectiveRadius > maxCircleEffectiveRadius){
                 circleEffectiveRadius = maxCircleEffectiveRadius;
             }
-            if(circleCenterRadius + circleBorderWidth > circleEffectiveRadius){
-                circleCenterRadius = circleEffectiveRadius - circleBorderWidth;
+            //判断外圈半径
+            if(circleOuterRingRadius > circleEffectiveRadius){
+                circleOuterRingRadius = circleEffectiveRadius;
             }
-
+            //判断内圈半径
+            if(circleInnerRingRadius > circleEffectiveRadius){
+                circleInnerRingRadius = circleEffectiveRadius;
+            }
+            //判断内外圈大小,内大于外则交换
+            if(circleInnerRingRadius > circleOuterRingRadius){
+                int x = circleInnerRingRadius;
+                circleInnerRingRadius = circleOuterRingRadius;
+                circleOuterRingRadius = x;
+            }
         }
     }
 
@@ -188,15 +203,11 @@ public class SudokuSwipeGesturesView extends View {
     public boolean onTouchEvent(MotionEvent event) {
         nowX = (int) event.getX();
         nowY = (int) event.getY();
-        CircleInfo circle = getOuterCircle(nowX, nowY);
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
                 resetAll();
             case MotionEvent.ACTION_MOVE:
-                if (circle != null) {
-                    circle.isSelect = true;
-                    selectCirclePosiList.add(circle);
-                }
+                addSelectCircle(getOuterCircle(nowX, nowY));
                 nowDataState = DATA_STATE_INPUT;
                 break;
             case MotionEvent.ACTION_UP:
@@ -213,11 +224,15 @@ public class SudokuSwipeGesturesView extends View {
     protected void onDraw(Canvas canvas) {
         if(circleInfoList.size() > 0){
             switch (circleShowType){
-                case CIRCLE_SHOW_TYPE_1:
-                    drawCanvasCircleShowType1(canvas);
+                case CIRCLE_SHOW_TYPE_1://内圈实心，外圈空心带边框，滑动时内外圈变色，连接线从中心点出来，此模式下需要传入边框宽度
+                    drawCanvasCircleShowType(canvas,true,true
+                            ,true,true
+                            ,true,true);
                     break;
-                case CIRCLE_SHOW_TYPE_2:
-                    drawCanvasCircleShowType2(canvas);
+                case CIRCLE_SHOW_TYPE_2://内圈实心，外圈实心，未选中的时候内圈显示，外圈不显示，滑动时外圈显示，连接线从中心点出来
+                    drawCanvasCircleShowType(canvas,true,false
+                            ,true,true
+                            ,true,true);
                     break;
                 default:
                     break;
@@ -226,6 +241,16 @@ public class SudokuSwipeGesturesView extends View {
             drawLineMove(canvas);
         }
         super.onDraw(canvas);
+    }
+    /**
+     * 添加选中圆
+     * @param circleInfo
+     */
+    private void addSelectCircle(CircleInfo circleInfo){
+        if(circleInfo != null){
+            circleInfo.isSelect = true;
+            selectCirclePosiList.add(circleInfo);
+        }
     }
     /**
      * 判断传入坐标是否在圆内
@@ -252,6 +277,133 @@ public class SudokuSwipeGesturesView extends View {
             //如果点击位置与圆心的距离大于圆的半径，证明点击位置没有在圆内,同时也没有被选中的
             if(distanceZ <= circleEffectiveRadius && !circleInfo.isSelect){
                 iterator = null;
+                //做是否跳过位置的判定，如果产生位置跳转则要把跳过的位置加入（当跳过的位置时未选中的时候）
+                CircleInfo lastSelectCircle;
+                CircleInfo passCircle = null;
+                if(selectCirclePosiList.size() > 0){
+                    lastSelectCircle = selectCirclePosiList.get(selectCirclePosiList.size() - 1);
+                    switch (lastSelectCircle.posi){
+                        case 0://此位置会被跳的终点位置为位置6、8、2
+                            switch (circleInfo.posi){
+                                case 2:
+                                    //此时被跳过的位置时1，判断如果是未选中的话则加入到列表中
+                                    passCircle = circleInfoList.get(1);
+                                    break;
+                                case 6:
+                                    //此时被跳过的位置时3，判断如果是未选中的话则加入到列表中
+                                    passCircle = circleInfoList.get(3);
+                                    break;
+                                case 8:
+                                    //此时被跳过的位置时4，判断如果是未选中的话则加入到列表中
+                                    passCircle = circleInfoList.get(4);
+                                    break;
+                                default:
+                                    break;
+                            }
+                            break;
+                        case 1://此位置会被跳的终点位置为位置7
+                            switch (circleInfo.posi){
+                                case 7:
+                                    //此时被跳过的位置时4，判断如果是未选中的话则加入到列表中
+                                    passCircle = circleInfoList.get(4);
+                                    break;
+                                default:
+                                    break;
+                            }
+                            break;
+                        case 3://此位置会被跳的终点位置为位置5
+                            switch (circleInfo.posi){
+                                case 5:
+                                    //此时被跳过的位置时4，判断如果是未选中的话则加入到列表中
+                                    passCircle = circleInfoList.get(4);
+                                    break;
+                                default:
+                                    break;
+                            }
+                            break;
+                        case 5://此位置会被跳的终点位置为位置3
+                            switch (circleInfo.posi){
+                                case 3:
+                                    //此时被跳过的位置时4，判断如果是未选中的话则加入到列表中
+                                    passCircle = circleInfoList.get(4);
+                                    break;
+                                default:
+                                    break;
+                            }
+                            break;
+                        case 7://此位置会被跳的终点位置为位置1
+                            switch (circleInfo.posi){
+                                case 1:
+                                    //此时被跳过的位置时4，判断如果是未选中的话则加入到列表中
+                                    passCircle = circleInfoList.get(4);
+                                    break;
+                                default:
+                                    break;
+                            }
+                            break;
+                        case 2://此位置会被跳的终点位置为位置0、6、8
+                            switch (circleInfo.posi){
+                                case 0:
+                                    //此时被跳过的位置时1，判断如果是未选中的话则加入到列表中
+                                    passCircle = circleInfoList.get(1);
+                                    break;
+                                case 6:
+                                    //此时被跳过的位置时4，判断如果是未选中的话则加入到列表中
+                                    passCircle = circleInfoList.get(4);
+                                    break;
+                                case 8:
+                                    //此时被跳过的位置时5，判断如果是未选中的话则加入到列表中
+                                    passCircle = circleInfoList.get(5);
+                                    break;
+                                default:
+                                    break;
+                            }
+                            break;
+                        case 6://此位置会被跳的终点位置为位置0、2、8
+                            switch (circleInfo.posi){
+                                case 0:
+                                    //此时被跳过的位置时3，判断如果是未选中的话则加入到列表中
+                                    passCircle = circleInfoList.get(3);
+                                    break;
+                                case 2:
+                                    //此时被跳过的位置时4，判断如果是未选中的话则加入到列表中
+                                    passCircle = circleInfoList.get(4);
+                                    break;
+                                case 8:
+                                    //此时被跳过的位置时7，判断如果是未选中的话则加入到列表中
+                                    passCircle = circleInfoList.get(7);
+                                    break;
+                                default:
+                                    break;
+                            }
+                            break;
+                        case 8://此位置会被跳的终点位置为位置0、2、6
+                            switch (circleInfo.posi){
+                                case 0:
+                                    //此时被跳过的位置时4，判断如果是未选中的话则加入到列表中
+                                    passCircle = circleInfoList.get(4);
+                                    break;
+                                case 2:
+                                    //此时被跳过的位置时5，判断如果是未选中的话则加入到列表中
+                                    passCircle = circleInfoList.get(5);
+                                    break;
+                                case 6:
+                                    //此时被跳过的位置时7，判断如果是未选中的话则加入到列表中
+                                    passCircle = circleInfoList.get(7);
+                                    break;
+                                default:
+                                    break;
+                            }
+                            break;
+                        default:
+                            break;
+                    }
+                    if(passCircle != null && !passCircle.isSelect){
+                        addSelectCircle(passCircle);
+                    }
+                }
+
+
                 return circleInfo;
             }
         }
@@ -269,80 +421,112 @@ public class SudokuSwipeGesturesView extends View {
         }
     }
     /**
-     * 绘制显示模式1,中心圆实心，外层圆空心，滑动时中心圆变色，外围出现指定宽度的边框，连接线从中心点出来，此模式下需要传入边框宽度
+     *
      * @param canvas
+     * @param circleInnerRingIsShowForUnSelect 未选中的内圈是否要显示
+     * @param circleOuterRingIsShowForUnSelect 未选中的外圈是否要显示
+     * @param circleInnerRingIsShowForOptions 正在滑动操作的时候内圈是否要显示
+     * @param circleOuterRingIsShowForOptions 正在滑动操作的时候外圈是否要显示
+     * @param circleInnerRingIsShowForDataFalse 当数据是错误的时候内圈是否要显示
+     * @param circleOuterRingIsShowForDataFalse 当数据是错误的时候外圈是否要显示
      */
-    private void drawCanvasCircleShowType1(Canvas canvas){
+    private void drawCanvasCircleShowType(Canvas canvas,boolean circleInnerRingIsShowForUnSelect
+            ,boolean circleOuterRingIsShowForUnSelect,boolean circleInnerRingIsShowForOptions
+            ,boolean circleOuterRingIsShowForOptions,boolean circleInnerRingIsShowForDataFalse
+            ,boolean circleOuterRingIsShowForDataFalse){
         CircleInfo circleInfo;
         if(isShowTrack) {
             //先绘制选中的
             int size = selectCirclePosiList.size();
             CircleInfo circleInfoLast = null;
             //数据状态是输入中的时候绘制选中状态下的状况
-            if(nowDataState == DATA_STATE_INPUT || nowDataState == DATA_STATE_FINISH){
-                for (int i = 0; i < size; i++) {
-                    circleInfo = selectCirclePosiList.get(i);
-                    drawItem(canvas,circleInfo,true,circleCenterRadius,circleSelectCenterPaint, circleEffectiveRadius
-                            , circleSelectBorderPaint,true,circleInfoLast,connectingSelectLinePaint);
-                    circleInfoLast = circleInfo;
-                }
-            }else if(nowDataState == DATA_STATE_FALSE){
-                for (int i = 0; i < size; i++) {
-                    circleInfo = selectCirclePosiList.get(i);
-                    drawItem(canvas,circleInfo,true,circleCenterRadius,circleSelectErrorCenterPaint, circleEffectiveRadius
-                            , circleSelectErrorBorderPaint,true,circleInfoLast,connectingSelectErrorLinePaint);
-                    circleInfoLast = circleInfo;
-                }
+            switch (nowDataState){
+                case DATA_STATE_INPUT:
+                case DATA_STATE_FINISH:
+                case DATA_STATE_TRUE:
+                    for (int i = 0; i < size; i++) {
+                        circleInfo = selectCirclePosiList.get(i);
+                        drawItem(canvas,circleInfo,circleInfoLast,connectingSelectLinePaint
+                                ,circleInnerRingIsShowForOptions,circleInnerRingRadius,circleInnerRingSelectedPaint
+                                ,circleOuterRingIsShowForOptions,circleOuterRingRadius,circleOuterRingSelectedPaint);
+                        circleInfoLast = circleInfo;
+                    }
+                    break;
+                case DATA_STATE_FALSE:
+                    for (int i = 0; i < size; i++) {
+                        circleInfo = selectCirclePosiList.get(i);
+                        drawItem(canvas,circleInfo,circleInfoLast,connectingSelectErrorLinePaint
+                                ,circleInnerRingIsShowForOptions,circleInnerRingRadius,circleInnerRingErrorPaint
+                                ,circleOuterRingIsShowForOptions,circleOuterRingRadius,circleOuterRingErrorPaint);
+                        circleInfoLast = circleInfo;
+                    }
+                    break;
+                case DATA_STATE_INIT:
+                default:
+                    break;
             }
             circleInfo = null;
             circleInfoLast = null;
         }
 
         //绘制未选中的
-        for(int i = 0; i < 9 ; i++){
-            circleInfo = circleInfoList.get(i);
-            if(selectCirclePosiList.contains(circleInfo) && isShowTrack){
-                continue;
+        if(circleInnerRingIsShowForUnSelect && !circleOuterRingIsShowForUnSelect){
+            for(int i = 0; i < 9 ; i++){
+                circleInfo = circleInfoList.get(i);
+                if(selectCirclePosiList.contains(circleInfo) && isShowTrack){
+                    continue;
+                }
+                canvas.drawCircle(circleInfo.x, circleInfo.y, circleInnerRingRadius, circleInnerRingUnSelectedPaint);
             }
-            //绘制中心圆
-            canvas.drawCircle(circleInfo.x, circleInfo.y, circleCenterRadius, circleUnSelectCenterPaint);
-            canvas.drawCircle(circleInfo.x, circleInfo.y, circleEffectiveRadius, circleUnSelectBorderPaint);
+        }else if(!circleInnerRingIsShowForUnSelect && circleOuterRingIsShowForUnSelect){
+            for(int i = 0; i < 9 ; i++){
+                circleInfo = circleInfoList.get(i);
+                if(selectCirclePosiList.contains(circleInfo) && isShowTrack){
+                    continue;
+                }
+                canvas.drawCircle(circleInfo.x, circleInfo.y, circleOuterRingRadius, circleOuterRingUnSelectPaint);
+            }
+        }else {
+            for(int i = 0; i < 9 ; i++){
+                circleInfo = circleInfoList.get(i);
+                if(selectCirclePosiList.contains(circleInfo) && isShowTrack){
+                    continue;
+                }
+                canvas.drawCircle(circleInfo.x, circleInfo.y, circleInnerRingRadius, circleInnerRingUnSelectedPaint);
+                canvas.drawCircle(circleInfo.x, circleInfo.y, circleOuterRingRadius, circleOuterRingUnSelectPaint);
+            }
         }
-
-    }
-    /**
-     * 绘制显示模式2,中心圆空心，外层圆实心，滑动时外层圆直接变色，中心出现和外层圆相同颜色的圆点，连接线从中心点出来，此模式需要传入选中时中心圆半径
-     * @param canvas
-     */
-    private void drawCanvasCircleShowType2(Canvas canvas){
 
     }
     /**
      * 绘制每一个位置的圆圈
      * @param canvas 画布
      * @param circleInfo 要绘制的圆对象
-     * @param centerRadiu 中心圆半径
-     * @param centerPaint 中心圆画笔
-     * @param centerCircleIsShow 中心圆是否显示
-     * @param effectiveRadius 有效区域半径
-     * @param borderPaint 外圈边框宽度
+     * @param circleInnerRingRadius 内圈半径
+     * @param circleInnerRingPaint 内圈画笔
+     * @param circleInnerRingIsShow 内圈是否显示
+     * @param circleOuterRingRadius 外圈半径
+     * @param circleOuterRingPaint 外圈画笔
+     * @param circleOuterRingIsShow 外圈是否显示
      * @param circleInfoLast 要连接线的上一个实体圆对象，为空的时候不连接
      * @param linePaint 连接线画笔
      */
-    private void drawItem(Canvas canvas,CircleInfo circleInfo,boolean centerCircleIsShow,int centerRadiu,Paint centerPaint
-            ,int effectiveRadius,Paint borderPaint,boolean borderCircleIsShow,CircleInfo circleInfoLast,Paint linePaint){
-        //绘制中心圆
-        if(centerCircleIsShow){
-            canvas.drawCircle(circleInfo.x, circleInfo.y, centerRadiu, centerPaint);
+    private void drawItem(Canvas canvas,CircleInfo circleInfo,CircleInfo circleInfoLast,Paint linePaint
+            ,boolean circleInnerRingIsShow,int circleInnerRingRadius,Paint circleInnerRingPaint
+            ,boolean circleOuterRingIsShow,int circleOuterRingRadius,Paint circleOuterRingPaint){
+        //绘制外圈
+        if(circleOuterRingIsShow) {
+            canvas.drawCircle(circleInfo.x, circleInfo.y, circleOuterRingRadius, circleOuterRingPaint);
         }
-        //绘制外圈圆边框
-        if(borderCircleIsShow) {
-            canvas.drawCircle(circleInfo.x, circleInfo.y, effectiveRadius, borderPaint);
+        //绘制中心圆
+        if(circleInnerRingIsShow){
+            canvas.drawCircle(circleInfo.x, circleInfo.y, circleInnerRingRadius, circleInnerRingPaint);
         }
         //绘制两个圆中间的连接线
         if(circleInfoLast != null && linePaint != null){
             canvas.drawLine(circleInfoLast.x, circleInfoLast.y, circleInfo.x, circleInfo.y, linePaint);
         }
+
     }
 
 
@@ -350,22 +534,6 @@ public class SudokuSwipeGesturesView extends View {
 
 
     /******************************************内部私有方法******************************************/
-
-    /**
-     * 重置所有状态
-     */
-    private void resetAll() {
-        nowDataState = DATA_STATE_INIT;
-        Iterator<CircleInfo> iterator = selectCirclePosiList.iterator();
-        CircleInfo circleInfo;
-        while (iterator.hasNext()){
-            circleInfo = iterator.next();
-            circleInfo.isSelect = false;
-            iterator.remove();
-            selectCirclePosiList.remove(circleInfo);
-        }
-        invalidate();
-    }
 
     /**
      * 结束输入并回传数据
@@ -382,13 +550,6 @@ public class SudokuSwipeGesturesView extends View {
             inputStateChangeCallback.finishInput(posis);
         }
     }
-
-
-
-
-
-
-
     /**
      * 将dip或dp值转换为px值，保证尺寸大小不变
      *
@@ -398,6 +559,72 @@ public class SudokuSwipeGesturesView extends View {
     private int dip2px(float dipValue) {
         final float scale = getContext().getResources().getDisplayMetrics().density;
         return (int) (dipValue * scale + 0.5f);
+    }
+
+
+
+    /*******************************************外部开放方法*****************************************/
+    @IntDef({1,2})
+    private @interface ShowType{};
+    public SudokuSwipeGesturesView setCircleShowType(@ShowType int circleShowType) {
+        this.circleShowType = circleShowType;
+        switch (circleShowType){
+            case CIRCLE_SHOW_TYPE_2://内圈实心，外圈实心，未选中的时候内圈显示，外圈不显示，滑动时外圈显示，连接线从中心点出来
+                setPaint(circleInnerRingSelectedPaint,circleInnerRingSelectedColor,false,0);
+                setPaint(circleInnerRingUnSelectedPaint,circleInnerRingUnSelectedColor,false,0);
+                setPaint(circleInnerRingErrorPaint,circleInnerRingErrorColor,false,0);
+                setPaint(circleOuterRingSelectedPaint,circleOuterRingSelectedColor,false,0);
+                setPaint(circleOuterRingUnSelectPaint,circleOuterRingUnSelectedColor,false,0);
+                setPaint(circleOuterRingErrorPaint,circleOuterRingErrorColor,false,0);
+                setPaint(connectingSelectLinePaint,connectingLineColor,true,connectingLineWidth);
+                setPaint(connectingSelectErrorLinePaint,connectingLineErrorColor,true,connectingLineWidth);
+                break;
+            case CIRCLE_SHOW_TYPE_1://内圈实心，外圈空心带边框，滑动时内外圈变色，连接线从中心点出来，此模式下需要传入边框宽度
+                setPaint(circleInnerRingSelectedPaint,circleInnerRingSelectedColor,false,0);
+                setPaint(circleInnerRingUnSelectedPaint,circleInnerRingUnSelectedColor,false,0);
+                setPaint(circleInnerRingErrorPaint,circleInnerRingErrorColor,false,0);
+                setPaint(circleOuterRingSelectedPaint,circleOuterRingSelectedColor,true,circleOuterRingBorderWidth);
+                setPaint(circleOuterRingUnSelectPaint,circleOuterRingUnSelectedColor,true,circleOuterRingBorderWidth);
+                setPaint(circleOuterRingErrorPaint,circleOuterRingErrorColor,true,circleOuterRingBorderWidth);
+                setPaint(connectingSelectLinePaint,connectingLineColor,true,connectingLineWidth);
+                setPaint(connectingSelectErrorLinePaint,connectingLineErrorColor,true,connectingLineWidth);
+            default:
+                break;
+        }
+        return this;
+    }
+    /**
+     * 重置所有状态
+     */
+    public void resetAll() {
+        nowDataState = DATA_STATE_INIT;
+        Iterator<CircleInfo> iterator = selectCirclePosiList.iterator();
+        CircleInfo circleInfo;
+        while (iterator.hasNext()){
+            circleInfo = iterator.next();
+            circleInfo.isSelect = false;
+            iterator.remove();
+            selectCirclePosiList.remove(circleInfo);
+        }
+        invalidate();
+    }
+    /**
+     * 手势错误调用（一般会交由外部方法调用）
+     */
+    public void gestureError(){
+        nowDataState = DATA_STATE_FALSE;
+        invalidate();
+        //指定时间之后重置
+        handler.sendEmptyMessageDelayed(RESET_VIEW,1500);
+    }
+    /**
+     * 设置回调
+     * @param inputStateChangeCallback
+     * @return
+     */
+    public SudokuSwipeGesturesView setInputStateChangeCallback(InputStateChangeCallback inputStateChangeCallback) {
+        this.inputStateChangeCallback = inputStateChangeCallback;
+        return this;
     }
 
     /**
@@ -426,8 +653,10 @@ public class SudokuSwipeGesturesView extends View {
         }
     }
 
+    /**
+     * 回调方法
+     */
     public interface InputStateChangeCallback{
         void finishInput(int[] posis);//回传位置数组
-        void beInputting();//正在输入
     }
 }

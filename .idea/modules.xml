@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/AndroidProjectCustomViews/AndroidProjectCustomViews.iml" filepath="$PROJECT_DIR$/AndroidProjectCustomViews/AndroidProjectCustomViews.iml" />
+      <module fileurl="file://E:\kuangjia_demo_for_custom\AndroidProjectTools\AndroidProjectCustomViews\AndroidProjectCustomViews.iml" filepath="E:\kuangjia_demo_for_custom\AndroidProjectTools\AndroidProjectCustomViews\AndroidProjectCustomViews.iml" />
       <module fileurl="file://$PROJECT_DIR$/AndroidProjectTools.iml" filepath="$PROJECT_DIR$/AndroidProjectTools.iml" />
       <module fileurl="file://$PROJECT_DIR$/adnroidprojecttools/adnroidprojecttools.iml" filepath="$PROJECT_DIR$/adnroidprojecttools/adnroidprojecttools.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />

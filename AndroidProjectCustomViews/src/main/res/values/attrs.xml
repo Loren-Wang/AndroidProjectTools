@@ -2,13 +2,19 @@
 <resources>
 
     <declare-styleable name="SudokuSwipeGesturesView">
-        <attr name="circleEffectiveRadius" format="dimension"/>
-        <attr name="circleCenterRadius" format="dimension"/>
         <attr name="connectingLineWidth" format="dimension"/>
-        <attr name="circleBorderWidth" format="dimension"/>
-        <attr name="circleSelectedColor" format="color"/>
-        <attr name="circleUnSelectedColor" format="color"/>
-        <attr name="circleSelectedErrorColor" format="color"/>
+        <attr name="circleEffectiveRadius" format="dimension"/>
+        <attr name="circleInnerRingRadius" format="dimension"/>
+        <attr name="circleOuterRingRadius" format="dimension"/>
+        <attr name="circleOuterRingBorderWidth" format="dimension"/>
+        <attr name="circleInnerRingSelectedColor" format="color"/>
+        <attr name="circleInnerRingUnSelectedColor" format="color"/>
+        <attr name="circleInnerRingErrorColor" format="color"/>
+        <attr name="circleOuterRingSelectedColor" format="color"/>
+        <attr name="circleOuterRingUnSelectedColor" format="color"/>
+        <attr name="circleOuterRingErrorColor" format="color"/>
+        <attr name="connectingLineColor" format="color"/>
+        <attr name="connectingLineErrorColor" format="color"/>
         <attr name="isShowTrack" format="boolean"/>
         <attr name="circleShowType">
             <enum name="CIRCLE_SHOW_TYPE_1" value="1"></enum>

@@ -7,12 +7,18 @@
     tools:context="com.androidprojecttools.android.MainActivity">
 
     <com.androidprojectcustomviews.SudokuSwipeGesturesView
-        android:layout_width="300dp"
-        android:layout_height="300dp"
+        android:layout_width="375dp"
+        android:layout_height="375dp"
         android:background="#ffffff"
-        app:circleUnSelectedColor="#0f0"
-        app:circleBorderWidth="1dp"
-        app:circleCenterRadius="10dp"
-        app:circleSelectedColor="#00f"/>
+        app:circleInnerRingRadius="11dp"
+        app:circleEffectiveRadius="33dp"
+        app:circleInnerRingUnSelectedColor="#dfdfdf"
+        app:circleInnerRingSelectedColor="#4885fc"
+        app:circleOuterRingSelectedColor="#4c4885fc"
+        app:circleInnerRingErrorColor="#4885fc"
+        app:circleOuterRingErrorColor="#4c4885fc"
+        app:connectingLineColor="#4885fc"
+        app:connectingLineErrorColor="#4885fc"
+        app:circleShowType="CIRCLE_SHOW_TYPE_2"/>
 
 </android.support.constraint.ConstraintLayout>
