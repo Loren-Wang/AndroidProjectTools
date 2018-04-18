@@ -1,1 +1,1 @@
-include ':app', ':adnroidprojecttools', ':AndroidProjectCustomViews'
+include ':app', ':AdnroidProjectTools', ':AndroidProjectCustomViews'
