@@ -636,11 +636,13 @@ public class BlueToothUtils {
             super.onCharacteristicRead(gatt, characteristic, status);
             bluetoothGatt = gatt;
             if(status == BluetoothGatt.GATT_SUCCESS) {
+                String hexStr = null;
                 if(characteristic.getValue() != null){
-                    LogUtils.logD(TAG,"接收到读命令返回数据:::" + DigitalTransUtils.getInstance().byte2HexStr(characteristic.getValue()));
+                    hexStr = DigitalTransUtils.getInstance().byte2HexStr(characteristic.getValue());
+                    LogUtils.logD(TAG,"接收到读命令返回数据:::" + hexStr);
                 }
                 if (blueToothCallback != null) {
-                    blueToothCallback.onCharacteristicForReadOrderReceiveData();
+                    blueToothCallback.onCharacteristicForReadOrderReceiveData(gatt,characteristic,hexStr);
                 }
             }
         }
@@ -650,11 +652,13 @@ public class BlueToothUtils {
             super.onCharacteristicWrite(gatt, characteristic, status);
             bluetoothGatt = gatt;
             if(status == BluetoothGatt.GATT_SUCCESS) {
+                String hexStr = null;
                 if(characteristic.getValue() != null){
-                    LogUtils.logD(TAG,"接收到写命令返回数据:::" + DigitalTransUtils.getInstance().byte2HexStr(characteristic.getValue()));
+                    hexStr = DigitalTransUtils.getInstance().byte2HexStr(characteristic.getValue());
+                    LogUtils.logD(TAG,"接收到写命令返回数据:::" + hexStr);
                 }
                 if (blueToothCallback != null) {
-                    blueToothCallback.onCharacteristicForWriteOrderReceiveData();
+                    blueToothCallback.onCharacteristicForWriteOrderReceiveData(gatt,characteristic,hexStr);
                 }
             }
         }
@@ -663,11 +667,13 @@ public class BlueToothUtils {
         public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
             super.onCharacteristicChanged(gatt, characteristic);
             bluetoothGatt = gatt;
+            String hexStr = null;
             if(characteristic.getValue() != null){
-                LogUtils.logD(TAG,"接收到接收同志的特征改变返回数据:::" + DigitalTransUtils.getInstance().byte2HexStr(characteristic.getValue()));
+                hexStr = DigitalTransUtils.getInstance().byte2HexStr(characteristic.getValue());
+                LogUtils.logD(TAG,"接收到接收同志的特征改变返回数据:::" + hexStr);
             }
             if (blueToothCallback != null) {
-                blueToothCallback.onCharacteristicChangeForNotifyOrderReceiveData();
+                blueToothCallback.onCharacteristicChangeForNotifyOrderReceiveData(gatt,characteristic,hexStr);
             }
         }
 
@@ -678,7 +684,7 @@ public class BlueToothUtils {
             if(status == BluetoothGatt.GATT_SUCCESS) {
                 LogUtils.logD(TAG,"设置指定特征通知写命令返回");
                 if (blueToothCallback != null) {
-                    blueToothCallback.onCharacteristicForNotifyReadOrderReceiveData();
+                    blueToothCallback.onCharacteristicForNotifyReadOrderReceiveData(gatt,descriptor);
                 }
             }
         }
@@ -690,7 +696,7 @@ public class BlueToothUtils {
             if(status == BluetoothGatt.GATT_SUCCESS) {
                 LogUtils.logD(TAG,"设置指定特征通知写命令返回");
                 if (blueToothCallback != null) {
-                    blueToothCallback.onCharacteristicForNotifyWriteOrderReceiveData();
+                    blueToothCallback.onCharacteristicForNotifyWriteOrderReceiveData(gatt,descriptor);
                 }
             }
         }

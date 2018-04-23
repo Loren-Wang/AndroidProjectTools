@@ -2,6 +2,9 @@ package com.androidprojecttools.android;
 
 import android.Manifest;
 import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothGatt;
+import android.bluetooth.BluetoothGattCharacteristic;
+import android.bluetooth.BluetoothGattDescriptor;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
@@ -136,27 +139,27 @@ public class MainActivity extends AppCompatActivity {
                 }
 
                 @Override
-                public void onCharacteristicForWriteOrderReceiveData() {
+                public void onCharacteristicForWriteOrderReceiveData(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, String hexStr) {
 
                 }
 
                 @Override
-                public void onCharacteristicForReadOrderReceiveData() {
+                public void onCharacteristicForReadOrderReceiveData(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, String hexStr) {
 
                 }
 
                 @Override
-                public void onCharacteristicForNotifyWriteOrderReceiveData() {
+                public void onCharacteristicForNotifyWriteOrderReceiveData(BluetoothGatt gatt, BluetoothGattDescriptor descriptor) {
                     handler.sendEmptyMessage(SEND_ORDER_FOR_WRITE_GET_DATA);
                 }
 
                 @Override
-                public void onCharacteristicForNotifyReadOrderReceiveData() {
+                public void onCharacteristicForNotifyReadOrderReceiveData(BluetoothGatt gatt, BluetoothGattDescriptor descriptor) {
 
                 }
 
                 @Override
-                public void onCharacteristicChangeForNotifyOrderReceiveData() {
+                public void onCharacteristicChangeForNotifyOrderReceiveData(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, String hexStr) {
 
                 }
 
