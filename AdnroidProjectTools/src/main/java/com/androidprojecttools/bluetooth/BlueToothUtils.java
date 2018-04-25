@@ -131,6 +131,35 @@ public class BlueToothUtils {
         return this;
     }
 
+    /***************************************蓝牙状态获取*********************************************/
+    /**
+     * 蓝牙是否开启
+     * @return
+     */
+    public boolean isEnableBT() {
+        isEnableBT = mBluetoothAdapter != null ? mBluetoothAdapter.isEnabled() : false;
+        return isEnableBT;
+    }
+
+    /**
+     * 获取正在连接的蓝牙设备
+     * @return
+     */
+    public BluetoothDevice getNowConnectBluetoothDevice() {
+        return isConnectSuccess ? bluetoothDevice : null;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
     /****************************************蓝牙的开启与关闭****************************************/
 
     /**
@@ -335,7 +364,7 @@ public class BlueToothUtils {
             bluetoothGatt.disconnect();
             handler.sendEmptyMessage(CONNECT_BT_DEVICE_CLOSE);
         }
-        bluetoothDevice = null;
+        this.bluetoothDevice = null;
         bluetoothGatt = null;
     }
 
@@ -562,6 +591,8 @@ public class BlueToothUtils {
                     LogUtils.logD(TAG,"蓝牙设备连接失败");
                     isConnectSuccess = false;
                     isConnecting = false;
+                    bluetoothDevice = null;
+                    bluetoothGatt = null;
                     if(blueToothCallback != null){
                         blueToothCallback.connectBTDeviceFail();
                     }
@@ -570,6 +601,8 @@ public class BlueToothUtils {
                     LogUtils.logD(TAG,"蓝牙设备连接关闭");
                     isConnectSuccess = false;
                     isConnecting = false;
+                    bluetoothDevice = null;
+                    bluetoothGatt = null;
                     if(blueToothCallback != null){
                         blueToothCallback.connectBTDeviceClose();
                     }
