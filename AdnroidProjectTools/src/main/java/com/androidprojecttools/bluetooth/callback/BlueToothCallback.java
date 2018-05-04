@@ -1,4 +1,4 @@
-package com.androidprojecttools.bluetooth;
+package com.androidprojecttools.bluetooth.callback;
 
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;

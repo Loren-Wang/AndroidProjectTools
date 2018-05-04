@@ -2,20 +2,15 @@ package com.androidprojecttools.android;
 
 import android.Manifest;
 import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothGatt;
-import android.bluetooth.BluetoothGattCharacteristic;
-import android.bluetooth.BluetoothGattDescriptor;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Message;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 
-import com.androidprojecttools.bluetooth.BlueToothCallback;
-import com.androidprojecttools.bluetooth.BlueToothUtils;
+import com.androidprojecttools.bluetooth.BlueToothOptionsUtils;
+import com.androidprojecttools.bluetooth.callback.BlueToothOptionsCallback;
 import com.androidprojecttools.common.LogUtils;
 import com.androidprojecttools.common.Setting;
 
@@ -70,110 +65,127 @@ public class MainActivity extends AppCompatActivity {
             final UUID characteristicUUid02 = CarAirBlueToothInfo.getInstance().paramUUid("0002");
             final UUID characteristicUUid03 = CarAirBlueToothInfo.getInstance().paramUUid("0003");
 
-            final int SEND_ORDER_FOR_WRITE_GET_DATA = 0;
-            final Handler handler = new Handler() {
+            BlueToothOptionsUtils.getInstance().setBlueToothOptionsCallback(new BlueToothOptionsCallback() {
                 @Override
-                public void handleMessage(Message msg) {
-                    super.handleMessage(msg);
-                    switch (msg.what) {
-                        case SEND_ORDER_FOR_WRITE_GET_DATA:
-                            BlueToothUtils.getInstance().sendOrderToBTDeviceWrite(serviceUUid, characteristicUUid02
-                                    , new byte[]{0x55, 0x01, 0x01, 0x02});
-                            sendEmptyMessageDelayed(SEND_ORDER_FOR_WRITE_GET_DATA, 3000);
-                            break;
-                        default:
-                            break;
+                public void scanBTDevice(boolean isHaveError, boolean isScan) {
+
+                }
+
+                @Override
+                public void scanFoundBlueToothDevice(BluetoothDevice bluetoothDevice) {
+                    if (TextUtils.equals(bluetoothDevice.getAddress(),"C6:AC:81:D3:2E:49")) {
+                        BlueToothOptionsUtils.getInstance().stopScanBTDevice();
+                        BlueToothOptionsUtils.getInstance().connectBlueToothDevice(bluetoothDevice);
                     }
                 }
-            };
-
-            BlueToothUtils.getInstance().setBlueToothCallback(new BlueToothCallback() {
-                @Override
-                public void enableBT() {
-
-                }
-
-                @Override
-                public void disableBT() {
-
-                }
-
-                @Override
-                public void scaningBTDevice(boolean isBondScan) {
-
-                }
-
-                @Override
-                public void stopScanBtDeveice(boolean isBondScan) {
-
-                }
-
-                @Override
-                public void scanBTDeviceResult(BluetoothDevice bluetoothDevice) {
-                    if (!TextUtils.isEmpty(bluetoothDevice.getAddress()) &&
-                            bluetoothDevice.getAddress().substring(0, 8).equals("F9:CA:06")) {
-                        BlueToothUtils.getInstance().connectBTClose(bluetoothDevice);
-                        BlueToothUtils.getInstance().connectBTDevice(bluetoothDevice);
-                        BlueToothUtils.getInstance().stopScan();
-                    }
-                }
-
-                @Override
-                public void connectBTDeviceSuccess() {
-
-                }
-
-                @Override
-                public void connectBTDeviceRecon() {
-
-                }
-
-                @Override
-                public void connectBTDeviceFail() {
-
-                }
-
-                @Override
-                public void connectBTDeviceClose() {
-
-                }
-
-                @Override
-                public void onCharacteristicForWriteOrderReceiveData(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, String hexStr) {
-
-                }
-
-                @Override
-                public void onCharacteristicForReadOrderReceiveData(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, String hexStr) {
-
-                }
-
-                @Override
-                public void onCharacteristicForNotifyWriteOrderReceiveData(BluetoothGatt gatt, BluetoothGattDescriptor descriptor) {
-                    handler.sendEmptyMessage(SEND_ORDER_FOR_WRITE_GET_DATA);
-                }
-
-                @Override
-                public void onCharacteristicForNotifyReadOrderReceiveData(BluetoothGatt gatt, BluetoothGattDescriptor descriptor) {
-
-                }
-
-                @Override
-                public void onCharacteristicChangeForNotifyOrderReceiveData(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, String hexStr) {
-
-                }
-
-                @Override
-                public void allowSendOrderToBTDevice() {
-                    BlueToothUtils.getInstance().sendOrderToBTDeviceNotify(serviceUUid, characteristicUUid03);
-                }
-            });
-            BlueToothUtils.getInstance().enableBlueTooth();
-            try {
-                BlueToothUtils.getInstance().startScanBTDevice(null, null, false);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            }).startScanBTDevice(null,null);
+//
+//            final int SEND_ORDER_FOR_WRITE_GET_DATA = 0;
+//            final Handler handler = new Handler() {
+//                @Override
+//                public void handleMessage(Message msg) {
+//                    super.handleMessage(msg);
+//                    switch (msg.what) {
+//                        case SEND_ORDER_FOR_WRITE_GET_DATA:
+//                            BlueToothUtils.getInstance().sendOrderToBTDeviceWrite(serviceUUid, characteristicUUid02
+//                                    , new byte[]{0x55, 0x01, 0x01, 0x02});
+//                            sendEmptyMessageDelayed(SEND_ORDER_FOR_WRITE_GET_DATA, 1000);
+//                            break;
+//                        default:
+//                            break;
+//                    }
+//                }
+//            };
+//
+//
+//
+//            BlueToothUtils.getInstance().setBlueToothCallback(new BlueToothCallback() {
+//                @Override
+//                public void enableBT() {
+//
+//                }
+//
+//                @Override
+//                public void disableBT() {
+//
+//                }
+//
+//                @Override
+//                public void scaningBTDevice(boolean isBondScan) {
+//
+//                }
+//
+//                @Override
+//                public void stopScanBtDeveice(boolean isBondScan) {
+//
+//                }
+//
+//                @Override
+//                public void scanBTDeviceResult(BluetoothDevice bluetoothDevice) {
+//                    if (!TextUtils.isEmpty(bluetoothDevice.getAddress()) &&
+//                            bluetoothDevice.getAddress().substring(0, 8).equals("F9:CA:06")) {
+//                        BlueToothUtils.getInstance().connectBTClose(bluetoothDevice);
+//                        BlueToothUtils.getInstance().connectBTDevice(bluetoothDevice);
+//                        BlueToothUtils.getInstance().stopScan();
+//                    }
+//                }
+//
+//                @Override
+//                public void connectBTDeviceSuccess() {
+//
+//                }
+//
+//                @Override
+//                public void connectBTDeviceRecon() {
+//
+//                }
+//
+//                @Override
+//                public void connectBTDeviceFail() {
+//
+//                }
+//
+//                @Override
+//                public void connectBTDeviceClose() {
+//
+//                }
+//
+//                @Override
+//                public void onCharacteristicForWriteOrderReceiveData(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, String hexStr) {
+//
+//                }
+//
+//                @Override
+//                public void onCharacteristicForReadOrderReceiveData(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, String hexStr) {
+//
+//                }
+//
+//                @Override
+//                public void onCharacteristicForNotifyWriteOrderReceiveData(BluetoothGatt gatt, BluetoothGattDescriptor descriptor) {
+//                    handler.sendEmptyMessage(SEND_ORDER_FOR_WRITE_GET_DATA);
+//                }
+//
+//                @Override
+//                public void onCharacteristicForNotifyReadOrderReceiveData(BluetoothGatt gatt, BluetoothGattDescriptor descriptor) {
+//
+//                }
+//
+//                @Override
+//                public void onCharacteristicChangeForNotifyOrderReceiveData(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, String hexStr) {
+//
+//                }
+//
+//                @Override
+//                public void allowSendOrderToBTDevice() {
+//                    BlueToothUtils.getInstance().sendOrderToBTDeviceNotify(serviceUUid, characteristicUUid03);
+//                }
+//            });
+//            BlueToothUtils.getInstance().enableBlueTooth();
+//            try {
+//                BlueToothUtils.getInstance().startScanBTDevice(null, null, false);
+//            } catch (Exception e) {
+//                e.printStackTrace();
+//            }
 
         }
     }

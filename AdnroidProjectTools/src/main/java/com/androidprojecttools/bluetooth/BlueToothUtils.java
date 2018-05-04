@@ -21,6 +21,7 @@ import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
 import android.text.TextUtils;
 
+import com.androidprojecttools.bluetooth.callback.BlueToothCallback;
 import com.androidprojecttools.common.DigitalTransUtils;
 import com.androidprojecttools.common.LogUtils;
 import com.androidprojecttools.common.Setting;
@@ -67,6 +68,7 @@ public class BlueToothUtils {
     private boolean isConnecting = false;//是否正在发起连接
     private boolean isConnectSuccess = false;//是否连接成功
     private boolean isRecon = false;//是否正在重连
+    private boolean isOnlyScanBond = false;
     private Map<String,BluetoothDevice> deviceMap = new HashMap<>();//蓝牙设备记录
 
     private BlueToothUtils(){
@@ -75,26 +77,12 @@ public class BlueToothUtils {
                 && ContextCompat.checkSelfPermission(Setting.APPLICATION_CONTEXT, Manifest.permission.BLUETOOTH_ADMIN) == PackageManager.PERMISSION_GRANTED
                 && ContextCompat.checkSelfPermission(Setting.APPLICATION_CONTEXT, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             LogUtils.logD(TAG, "设备拥有蓝牙相关权限");
-            final BluetoothManager bluetoothManager = (BluetoothManager) Setting.APPLICATION_CONTEXT.getSystemService(Context.BLUETOOTH_SERVICE);
-            mBluetoothAdapter = bluetoothManager.getAdapter();
 
-            //初始化是否支持蓝牙
-            if(mBluetoothAdapter == null){
-                LogUtils.logD(TAG,"设备不支持蓝牙");
-                isSupportBT = false;
-                return;
-            }else {
-                LogUtils.logD(TAG,"设备支持蓝牙");
-                isSupportBT = true;
-            }
-            //初始化蓝牙设备是否开启
-            if(mBluetoothAdapter.isEnabled()){
-                LogUtils.logD(TAG,"蓝牙设备是已开启状态");
-                isEnableBT = true;
-            }else {
-                LogUtils.logD(TAG,"蓝牙设备未开启");
-                isEnableBT = false;
-            }
+            //初始化蓝牙管理器
+            initBTManager();
+
+            //初始化蓝牙状态
+           initBtState();
 
             //实例化蓝牙广播接收器
             blueToothReceicer = new BlueToothReceicer(handler, SCAN_TO_DEVICE, SCAN_UN_BOND_START, SCAN_UN_BOND_STOP
@@ -147,6 +135,37 @@ public class BlueToothUtils {
      */
     public BluetoothDevice getNowConnectBluetoothDevice() {
         return isConnectSuccess ? bluetoothDevice : null;
+    }
+
+    /**
+     * 初始化蓝牙管理器
+     */
+    private void initBTManager(){
+        final BluetoothManager bluetoothManager = (BluetoothManager) Setting.APPLICATION_CONTEXT.getSystemService(Context.BLUETOOTH_SERVICE);
+        mBluetoothAdapter = bluetoothManager.getAdapter();
+    }
+
+    /**
+     * 初始化蓝牙状态
+     */
+    public void initBtState(){
+        //初始化是否支持蓝牙
+        if(mBluetoothAdapter == null){
+            LogUtils.logD(TAG,"设备不支持蓝牙");
+            isSupportBT = false;
+            return;
+        }else {
+            LogUtils.logD(TAG,"设备支持蓝牙");
+            isSupportBT = true;
+        }
+        //初始化蓝牙设备是否开启
+        if(mBluetoothAdapter.isEnabled()){
+            LogUtils.logD(TAG,"蓝牙设备是已开启状态");
+            isEnableBT = true;
+        }else {
+            LogUtils.logD(TAG,"蓝牙设备未开启");
+            isEnableBT = false;
+        }
     }
 
 
@@ -215,6 +234,7 @@ public class BlueToothUtils {
             throw new Exception("请先设置接收回调，否则会导致无法接收扫描状态改变");
         }
 
+        this.isOnlyScanBond = isOnlyScanBond;
         if(isSupportBT && isEnableBT && !isScan){
             LogUtils.logD(TAG,"准备开蓝牙扫描第一步，对已绑定设备进行扫描");
             //传递设备扫描的条件
@@ -282,10 +302,11 @@ public class BlueToothUtils {
             mBluetoothAdapter.cancelDiscovery();
             handler.removeMessages(STOP_SCAN_DEVICE_AND_CIRCULATION);
             handler.removeMessages(START_SCAN_DEVICE_AND_CIRCULATION);
-            if (isCirculation) {
+            if (isCirculation && !isConnectSuccess) {
                 LogUtils.logD(TAG,"暂停设备扫描,指定时间之后再次开启扫描");
                 handler.sendEmptyMessageDelayed(START_SCAN_DEVICE_AND_CIRCULATION,5000);
             }else {
+                isScan = false;
                 LogUtils.logD(TAG,"彻底停止设备扫描");
             }
         }
@@ -387,6 +408,7 @@ public class BlueToothUtils {
                 LogUtils.logD(TAG,"读命令发送成功");
             }else {
                 LogUtils.logD(TAG,"读命令发送失败");
+                sendOrderFailRecon();
             }
         }
     }
@@ -405,9 +427,43 @@ public class BlueToothUtils {
                 LogUtils.logD(TAG,"写命令发送成功");
             }else {
                 LogUtils.logD(TAG,"写命令发送失败");
+                sendOrderFailRecon();
             }
         }
     }
+
+    /**
+     * 命令发送失败重新连接
+     */
+    private void sendOrderFailRecon() {
+        isRecon =false;
+        isConnecting = false;
+        isConnectSuccess = false;
+        //初始化蓝牙管理器
+        initBTManager();
+        //开启蓝牙
+        enableBlueTooth();
+        //初始化蓝牙状态
+        initBtState();
+        //重连设备
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    stopScan();
+                    startScanBTDevice(bluetoothDevice.getName(),bluetoothDevice.getAddress(),isOnlyScanBond);
+                } catch (Exception e) {
+                    try {
+                        startScanBTDevice(null,null,isOnlyScanBond);
+                    } catch (Exception e1) {
+                        e1.printStackTrace();
+                    }
+                }
+                handler.removeCallbacks(this);
+            }
+        },500);
+    }
+
     /**
      * 向蓝牙设备发送通知命令
      * @param serviceUUid 服务UUID
@@ -421,6 +477,8 @@ public class BlueToothUtils {
                 LogUtils.logD(TAG,"通知命令发送成功");
             }else {
                 LogUtils.logD(TAG,"通知命令发送失败");
+                //判断是否还在连接或者设备是否开启
+                sendOrderFailRecon();
             }
 
             List<BluetoothGattDescriptor> descriptors=characteristic.getDescriptors();
@@ -588,7 +646,7 @@ public class BlueToothUtils {
                     }
                     break;
                 case CONNECT_BT_DEVICE_FAIL:
-                    LogUtils.logD(TAG,"蓝牙设备连接失败");
+                    LogUtils.logD(TAG,"蓝牙设备连接 ");
                     isConnectSuccess = false;
                     isConnecting = false;
                     bluetoothDevice = null;
