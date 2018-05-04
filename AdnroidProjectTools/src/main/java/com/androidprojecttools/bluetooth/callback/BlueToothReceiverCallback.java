@@ -16,4 +16,5 @@ public interface BlueToothReceiverCallback  {
     void systemBlueToothStateChange(Integer state);//系统蓝牙状态发生了改变
     void scanFoundBlueToothDevice(BluetoothDevice bluetoothDevice);//扫描到蓝牙设备
     void disconnectBtDevice();//远程蓝牙设备断开连接
+    void connectBtDevice();//远程蓝牙设备已连接
 }

@@ -81,6 +81,7 @@ public class BlueToothStateReceiver extends BroadcastReceiver {
                 break;
             case ACTION_ACL_CONNECTED://与远程设备建立了ACL连接发出的广播
                 LogUtils.logD(TAG,"远程蓝牙设备连接成功");
+                blueToothReceiverCallback.connectBtDevice();
                 break;
             case ACTION_ACL_DISCONNECT_REQUESTED://ACL连接即将断开
                 LogUtils.logD(TAG,"远程设蓝牙备连接即将断开");

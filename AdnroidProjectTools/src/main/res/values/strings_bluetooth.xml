@@ -13,4 +13,19 @@
     <string name="scan_bt_device_pause">暂停蓝牙设备扫描，并在一定时间后重新开始扫描</string>
     <string name="scan_bt_device_reset">恢复蓝牙设备扫描，并在一定时间后暂停扫描</string>
 
+    <string name="connect_bt_device_start">开始蓝牙设备</string>
+    <string name="connect_bt_device_recon">重连蓝牙设备</string>
+
+    <string name="send_order_search_service">查找到对应的服务：</string>
+    <string name="send_order_search_characteristic">查找到对应的特征：cc,特征属性：vv</string>
+    <string name="send_order_characteristic_read_ready">准备向蓝牙设备发送特征读命令</string>
+    <string name="send_order_characteristic_read_success">特征读命令发送成功</string>
+    <string name="send_order_characteristic_read_fail">特征读命令发送失败</string>
+    <string name="send_order_characteristic_write_ready">准备向蓝牙设备发送特征写命令</string>
+    <string name="send_order_characteristic_write_success">特征写命令发送成功</string>
+    <string name="send_order_characteristic_write_fail">特征写命令发送失败</string>
+    <string name="send_order_characteristic_notify_ready">准备向蓝牙设备发送特征通知命令</string>
+    <string name="send_order_characteristic_notify_success">特征通知命令发送成功</string>
+    <string name="send_order_characteristic_notify_fail">特征通知命令发送失败</string>
+
 </resources>
