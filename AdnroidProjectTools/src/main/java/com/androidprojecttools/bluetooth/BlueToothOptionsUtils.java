@@ -381,6 +381,10 @@ public class BlueToothOptionsUtils {
      * 关闭蓝牙连接
      */
     public void connectBTClose(){
+        if(bluetoothGatt != null){
+            bluetoothGatt.disconnect();
+            bluetoothGatt.close();
+        }
         isConnectSuccess = false;
         isRecon = false;
         reconNum = 0;
