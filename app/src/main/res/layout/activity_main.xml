@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     tools:context="com.androidprojecttools.android.MainActivity">
 
-    <com.androidprojectcustomviews.SudokuSwipeGesturesView
+    <com.lorenwang.customviews.android.SudokuSwipeGesturesView
         android:layout_width="375dp"
         android:layout_height="375dp"
         android:background="#ffffff"

@@ -31,6 +31,9 @@ dependencies {
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
+
+    //使用这个引入会只在当前项目或者library中使用（compileOnly）
+    compileOnly 'com.lorenwang.tools.android:AndroidToolsFromLorenWang:1.0.0@aar'
 }
 //一定要加在最末尾，否则会导致无法读取到版本号
 apply from: 'maven-release-aar.gradle'

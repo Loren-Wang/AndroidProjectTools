@@ -14,11 +14,10 @@ import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 
-import com.androidprojecttools.bluetooth.BlueToothOptionsUtils;
-import com.androidprojecttools.bluetooth.callback.BlueToothOptionsCallback;
-import com.androidprojecttools.common.DigitalTransUtils;
-import com.androidprojecttools.common.LogUtils;
-import com.androidprojecttools.common.Setting;
+import com.lorenwang.bluetooth.android.bluetooth.BlueToothOptionsUtils;
+import com.lorenwang.bluetooth.android.bluetooth.callback.BlueToothOptionsCallback;
+import com.lorenwang.tools.android.DigitalTransUtils;
+import com.lorenwang.tools.android.LogUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,9 +31,6 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        Setting.APPLICATION_CONTEXT = getApplicationContext();
-        Setting.IS_DEBUGGABLE = true;
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             requestPermissions(new String[]{Manifest.permission.BLUETOOTH, Manifest.permission.BLUETOOTH_ADMIN
@@ -78,7 +74,7 @@ public class MainActivity extends AppCompatActivity {
                     super.handleMessage(msg);
                     switch (msg.what) {
                         case SEND_ORDER_FOR_WRITE_GET_DATA:
-                            BlueToothOptionsUtils.getInstance().sendOrderToBTDeviceWrite(serviceUUid, characteristicUUid02
+                            BlueToothOptionsUtils.getInstance(getApplicationContext()).sendOrderToBTDeviceWrite(serviceUUid, characteristicUUid02
                                     , new byte[]{0x55, 0x01, 0x01, 0x02});
                             sendEmptyMessageDelayed(SEND_ORDER_FOR_WRITE_GET_DATA, 2000);
                             break;
@@ -89,13 +85,13 @@ public class MainActivity extends AppCompatActivity {
             };
 
 
-            BlueToothOptionsUtils.getInstance().setBlueToothOptionsCallback(new BlueToothOptionsCallback() {
+            BlueToothOptionsUtils.getInstance(getApplicationContext()).setBlueToothOptionsCallback(new BlueToothOptionsCallback() {
                 @Override
                 public void systemBTDeviceStateChange(boolean isOpen) {
                     if(!isOpen){
-                        BlueToothOptionsUtils.getInstance().enableBlueTooth();
+                        BlueToothOptionsUtils.getInstance(getApplicationContext()).enableBlueTooth();
                     }else {
-                        BlueToothOptionsUtils.getInstance().startScanBTDevice(null,null);
+                        BlueToothOptionsUtils.getInstance(getApplicationContext()).startScanBTDevice(null,null);
                     }
                 }
 
@@ -107,8 +103,8 @@ public class MainActivity extends AppCompatActivity {
                 @Override
                 public void scanFoundBlueToothDevice(BluetoothDevice bluetoothDevice) {
                     if (TextUtils.equals(bluetoothDevice.getAddress(),"C6:AC:81:D3:2E:49")) {
-                        BlueToothOptionsUtils.getInstance().stopScanBTDevice();
-                        BlueToothOptionsUtils.getInstance().connectBlueToothDevice(bluetoothDevice,true);
+                        BlueToothOptionsUtils.getInstance(getApplicationContext()).stopScanBTDevice();
+                        BlueToothOptionsUtils.getInstance(getApplicationContext()).connectBlueToothDevice(bluetoothDevice,true);
                     }
                 }
 
@@ -124,7 +120,7 @@ public class MainActivity extends AppCompatActivity {
 
                 @Override
                 public void onServicesDiscovered(BluetoothGatt gatt, int status) {
-                    BlueToothOptionsUtils.getInstance().sendOrderToBTDeviceNotify(serviceUUid, characteristicUUid03);
+                    BlueToothOptionsUtils.getInstance(getApplicationContext()).sendOrderToBTDeviceNotify(serviceUUid, characteristicUUid03);
                 }
 
                 @Override
