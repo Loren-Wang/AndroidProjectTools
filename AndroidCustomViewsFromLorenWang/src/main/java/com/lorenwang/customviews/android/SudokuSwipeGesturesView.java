@@ -85,6 +85,7 @@ public class SudokuSwipeGesturesView extends View {
     private final int DATA_STATE_TRUE = 3;//当前的数据状态是正确输入
     private final int DATA_STATE_FALSE = 4;//当前的数据状态是错误输入
     private int nowDataState = DATA_STATE_INIT;//当前的数据状态
+    private boolean allowDraw = true;//是否允许绘制
 
     private final int RESET_VIEW = 0;//重置视图
     private Handler handler = new Handler(){
@@ -201,24 +202,27 @@ public class SudokuSwipeGesturesView extends View {
     private int nowY;
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        nowX = (int) event.getX();
-        nowY = (int) event.getY();
-        switch (event.getAction()) {
-            case MotionEvent.ACTION_DOWN:
-                resetAll();
-            case MotionEvent.ACTION_MOVE:
-                addSelectCircle(getOuterCircle(nowX, nowY));
-                nowDataState = DATA_STATE_INPUT;
-                break;
-            case MotionEvent.ACTION_UP:
-                nowDataState = DATA_STATE_FINISH;
-                finishInput();
-                break;
-            default:
-                break;
+        if(allowDraw) {
+            nowX = (int) event.getX();
+            nowY = (int) event.getY();
+            switch (event.getAction()) {
+                case MotionEvent.ACTION_DOWN:
+                    resetAll();
+                case MotionEvent.ACTION_MOVE:
+                    addSelectCircle(getOuterCircle(nowX, nowY));
+                    nowDataState = DATA_STATE_INPUT;
+                    break;
+                case MotionEvent.ACTION_UP:
+                    nowDataState = DATA_STATE_FINISH;
+                    finishInput();
+                    break;
+                default:
+                    break;
+            }
+            invalidate();
         }
-        invalidate();
         return true;
+
     }
     @Override
     protected void onDraw(Canvas canvas) {
@@ -624,6 +628,11 @@ public class SudokuSwipeGesturesView extends View {
      */
     public SudokuSwipeGesturesView setInputStateChangeCallback(InputStateChangeCallback inputStateChangeCallback) {
         this.inputStateChangeCallback = inputStateChangeCallback;
+        return this;
+    }
+
+    public SudokuSwipeGesturesView setAllowDraw(boolean allowDraw) {
+        this.allowDraw = allowDraw;
         return this;
     }
 

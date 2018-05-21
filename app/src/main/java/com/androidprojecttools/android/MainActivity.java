@@ -16,6 +16,7 @@ import android.text.TextUtils;
 
 import com.lorenwang.bluetooth.android.bluetooth.BlueToothOptionsUtils;
 import com.lorenwang.bluetooth.android.bluetooth.callback.BlueToothOptionsCallback;
+import com.lorenwang.customviews.android.SudokuSwipeGesturesView;
 import com.lorenwang.tools.android.DigitalTransUtils;
 import com.lorenwang.tools.android.LogUtils;
 
@@ -36,6 +37,14 @@ public class MainActivity extends AppCompatActivity {
             requestPermissions(new String[]{Manifest.permission.BLUETOOTH, Manifest.permission.BLUETOOTH_ADMIN
                     , Manifest.permission.ACCESS_COARSE_LOCATION}, 0);
         }
+
+        ((SudokuSwipeGesturesView)findViewById(R.id.test)).setInputStateChangeCallback(new SudokuSwipeGesturesView.InputStateChangeCallback() {
+            @Override
+            public void finishInput(int[] posis) {
+//                ((SudokuSwipeGesturesView)findViewById(R.id.test)).resetAll();
+                ((SudokuSwipeGesturesView)findViewById(R.id.test)).setAllowDraw(false);
+            }
+        });
 
     }
 
