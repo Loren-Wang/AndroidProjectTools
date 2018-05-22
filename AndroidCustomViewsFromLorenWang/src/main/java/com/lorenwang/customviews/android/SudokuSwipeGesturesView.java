@@ -7,7 +7,6 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.os.Handler;
 import android.os.Message;
-import android.support.annotation.IntDef;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
@@ -568,9 +567,7 @@ public class SudokuSwipeGesturesView extends View {
 
 
     /*******************************************外部开放方法*****************************************/
-    @IntDef({1,2})
-    private @interface ShowType{};
-    public SudokuSwipeGesturesView setCircleShowType(@ShowType int circleShowType) {
+    public SudokuSwipeGesturesView setCircleShowType(@SudokuSwipeGesturesViewShowType int circleShowType) {
         this.circleShowType = circleShowType;
         switch (circleShowType){
             case CIRCLE_SHOW_TYPE_2://内圈实心，外圈实心，未选中的时候内圈显示，外圈不显示，滑动时外圈显示，连接线从中心点出来
