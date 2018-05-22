@@ -22,5 +22,89 @@
         app:connectingLineErrorColor="#4885fc"
         app:circleShowType="CIRCLE_SHOW_TYPE_2"/>
 
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+        <com.lorenwang.customviews.android.CustomDrawableButton
+            android:layout_width="match_parent"
+            android:layout_height="90dp"
+            android:background="#000"
+            android:text="DSFGJOISDJFLSKFSL"
+            android:textSize="30sp"
+            android:textColor="#fff"
+            app:drawablePosi="DRAWABLE_POSI_LEFT"
+            app:drawableTextDistance="10dp"
+            app:drawableWidth="20dp"
+            app:drawableHeight="20dp"
+            app:drawableResId="@mipmap/ic_launcher"
+            android:textAllCaps="true"
+            android:layout_marginBottom="5dp"
+            />
+        <com.lorenwang.customviews.android.CustomDrawableButton
+            android:layout_width="match_parent"
+            android:layout_height="90dp"
+            android:background="#000"
+            android:text="dfasdfasdfasdf"
+            android:textSize="30sp"
+            android:textColor="#fff"
+            app:drawablePosi="DRAWABLE_POSI_TOP"
+            app:drawableTextDistance="10dp"
+            app:drawableWidth="20dp"
+            app:drawableHeight="20dp"
+            app:drawableResId="@mipmap/ic_launcher"
+            android:textAllCaps="true"
+            android:layout_marginBottom="5dp"
+            />
+        <com.lorenwang.customviews.android.CustomDrawableButton
+            android:layout_width="match_parent"
+            android:layout_height="90dp"
+            android:background="#000"
+            android:text="dfasdfasdfasdf"
+            android:textSize="30sp"
+            android:textColor="#fff"
+            app:drawablePosi="DRAWABLE_POSI_RIGHT"
+            app:drawableTextDistance="10dp"
+            app:drawableWidth="20dp"
+            app:drawableHeight="20dp"
+            app:drawableResId="@mipmap/ic_launcher"
+            android:textAllCaps="true"
+            android:layout_marginBottom="5dp"
+            />
+        <com.lorenwang.customviews.android.CustomDrawableButton
+            android:layout_width="match_parent"
+            android:layout_height="90dp"
+            android:background="#000"
+            android:text="dfasdfasdfasdf"
+            android:textSize="30sp"
+            android:textColor="#fff"
+            app:drawablePosi="DRAWABLE_POSI_BOTTOM"
+            app:drawableTextDistance="10dp"
+            app:drawableWidth="20dp"
+            app:drawableHeight="20dp"
+            app:drawableResId="@mipmap/ic_launcher"
+            android:textAllCaps="true"
+            android:layout_marginBottom="5dp"
+            />
+        <com.lorenwang.customviews.android.CustomDrawableButton
+            android:layout_width="match_parent"
+            android:layout_height="90dp"
+            android:background="#000"
+            android:text="dfasdfasdfasdf"
+            android:textSize="30sp"
+            android:textColor="#fff"
+            app:drawablePosi="DRAWABLE_POSI_NONE"
+            app:drawableTextDistance="10dp"
+            app:drawableWidth="20dp"
+            app:drawableHeight="20dp"
+            app:drawableResId="@mipmap/ic_launcher"
+            android:textAllCaps="true"
+            />
+
+
+
+    </LinearLayout>
+
+
 
 </android.support.constraint.ConstraintLayout>
