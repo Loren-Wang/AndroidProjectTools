@@ -13,9 +13,14 @@ import android.os.Message;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ImageView;
 
 import com.lorenwang.bluetooth.android.bluetooth.BlueToothOptionsUtils;
 import com.lorenwang.bluetooth.android.bluetooth.callback.BlueToothOptionsCallback;
+import com.lorenwang.customviews.android.FancyCoverFlow.FancyCoverFlow;
+import com.lorenwang.customviews.android.FancyCoverFlow.FancyCoverFlowAdapter;
 import com.lorenwang.customviews.android.SudokuSwipeGesturesView;
 import com.lorenwang.tools.android.DigitalTransUtils;
 import com.lorenwang.tools.android.LogUtils;
@@ -27,6 +32,7 @@ import java.util.UUID;
 public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "MainActivity";
+    private FancyCoverFlow mFancyCoverFlow;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,7 +52,68 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        mFancyCoverFlow = (FancyCoverFlow) findViewById(R.id.facyCoverFlow);
+        sample();
     }
+    private void sample() {
+        //设置数据  
+        this.mFancyCoverFlow.setAdapter(new FancyCoverFlowSampleAdapter());
+        //设置未选中的图的透明度  
+        this.mFancyCoverFlow.setUnselectedAlpha(1.0f);
+        //设置未选中的图的色彩饱和度  
+        this.mFancyCoverFlow.setUnselectedSaturation(0.0f);
+        //未被选中的图像的缩放比例  
+        this.mFancyCoverFlow.setUnselectedScale(0.5f);
+        //设置两个图之间的比例  
+        this.mFancyCoverFlow.setSpacing(50);
+        //设置未选中图像的最大旋转角度   
+        this.mFancyCoverFlow.setMaxRotation(0);
+        //设置未被 选中图像的下沉度  
+        this.mFancyCoverFlow.setScaleDownGravity(0.2f);
+        this.mFancyCoverFlow
+                .setActionDistance(FancyCoverFlow.ACTION_DISTANCE_AUTO);
+    }
+
+    public class FancyCoverFlowSampleAdapter extends FancyCoverFlowAdapter {
+
+        //加载显示图片的资源
+        private int[] images = {R.drawable.ic_launcher_background, R.mipmap.ic_launcher, R.mipmap.ic_launcher_round
+                , R.drawable.ic_launcher_background, R.mipmap.ic_launcher, R.mipmap.ic_launcher_round};
+
+        @Override
+        public int getCount() {
+            return images.length;
+        }
+
+        @Override
+        public Integer getItem(int i) {
+            return images[i];
+        }
+
+        @Override
+        public long getItemId(int i) {
+            return i;
+        }
+
+        @Override
+        public View getCoverFlowItem(int i, View reuseableView, ViewGroup viewGroup) {
+            ImageView imageView = null;
+
+            if (reuseableView != null) {
+                imageView = (ImageView) reuseableView;
+            } else {
+                imageView = new ImageView(viewGroup.getContext());
+                //设置图像在中心显示
+                imageView.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
+                //设置图像的显示尺寸
+                imageView.setLayoutParams(new FancyCoverFlow.LayoutParams(300, 400));
+            }
+            //显示图像
+            imageView.setImageResource(this.getItem(i));
+            return imageView;
+        }
+    }
+
 
 
     @Override
