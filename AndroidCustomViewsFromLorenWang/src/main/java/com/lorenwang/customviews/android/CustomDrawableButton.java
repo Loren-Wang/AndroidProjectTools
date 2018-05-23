@@ -59,13 +59,7 @@ public class CustomDrawableButton extends android.support.v7.widget.AppCompatBut
         drawableTextDistance = attributes.getDimensionPixelOffset(R.styleable.CustomDrawableButton_drawableTextDistance,drawableTextDistance);
         drawableResId = attributes.getResourceId(R.styleable.CustomDrawableButton_drawableResId,-1);
 
-        if(drawableResId > 0) {
-            Drawable drawable = getResources().getDrawable(drawableResId);
-            drawable.setBounds(0, 0, drawableWidth, drawableHeight);//第一0是距左右边距离，第二0是距上下边距离，第三69长度,第四宽度
-            drawBitmap = ((BitmapDrawable)drawable).getBitmap();
-            drawBitmapSrcRect = new Rect(0, 0, drawBitmap.getWidth(), drawBitmap.getHeight());
-            setDrawablePosi(drawablePosi);
-        }
+        setDrawablePosi(drawablePosi,drawableWidth,drawableHeight,drawableTextDistance,drawableResId);
 
         super.setGravity(Gravity.CENTER);
         setIncludeFontPadding(false);
@@ -74,7 +68,7 @@ public class CustomDrawableButton extends android.support.v7.widget.AppCompatBut
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
-        setDrawablePosi(drawablePosi);
+        setDrawablePosi(drawablePosi,drawableWidth,drawableHeight,drawableTextDistance,drawableResId);
     }
 
     @Override
@@ -96,7 +90,7 @@ public class CustomDrawableButton extends android.support.v7.widget.AppCompatBut
             drawable.setBounds(0, 0, drawableWidth, drawableHeight);//第一0是距左右边距离，第二0是距上下边距离，第三69长度,第四宽度
             drawBitmap = ((BitmapDrawable)drawable).getBitmap();
             drawBitmapSrcRect = new Rect(0, 0, drawBitmap.getWidth(), drawBitmap.getHeight());
-            setDrawablePosi(drawablePosi);
+            setDrawablePosi(drawablePosi,drawableWidth,drawableHeight,drawableTextDistance,drawableResId);
             invalidate();
         }
     }
@@ -104,14 +98,14 @@ public class CustomDrawableButton extends android.support.v7.widget.AppCompatBut
     @Override
     public void setText(CharSequence text, BufferType type) {
         super.setText(text, type);
-        setDrawablePosi(drawablePosi);
+        setDrawablePosi(drawablePosi,drawableWidth,drawableHeight,drawableTextDistance,drawableResId);
         invalidate();
     }
 
     @Override
     public void setTextSize(int unit, float size) {
         super.setTextSize(unit, size);
-        setDrawablePosi(drawablePosi);
+        setDrawablePosi(drawablePosi,drawableWidth,drawableHeight,drawableTextDistance,drawableResId);
         invalidate();
     }
 
@@ -131,8 +125,34 @@ public class CustomDrawableButton extends android.support.v7.widget.AppCompatBut
      * @param drawablePosi
      * @return
      */
-    public synchronized CustomDrawableButton setDrawablePosi(int drawablePosi) {
-        this.drawablePosi = drawablePosi;
+    @SuppressLint("ResourceType")
+    public synchronized CustomDrawableButton setDrawablePosi(Integer drawablePosi
+            , Integer drawableWidth, Integer drawableHeight, Integer drawableTextDistance, @DrawableRes Integer drawableResId) {
+
+        if(drawablePosi != null) {
+            this.drawablePosi = drawablePosi;
+        }
+        if(drawableWidth != null) {
+            this.drawableWidth = drawableWidth;
+        }
+        if(drawableHeight != null) {
+            this.drawableHeight = drawableHeight;
+        }
+        if(drawableTextDistance != null) {
+            this.drawableTextDistance = drawableTextDistance;
+        }
+        if(drawableResId != null) {
+            this.drawableResId = drawableResId;
+        }else {
+            this.drawableResId = drawableResId = -1;
+        }
+
+        if(drawableResId > 0) {
+            Drawable drawable = getResources().getDrawable(drawableResId);
+            drawable.setBounds(0, 0, this.drawableWidth,  this.drawableHeight);//第一0是距左右边距离，第二0是距上下边距离，第三69长度,第四宽度
+            drawBitmap = ((BitmapDrawable)drawable).getBitmap();
+            drawBitmapSrcRect = new Rect(0, 0, drawBitmap.getWidth(), drawBitmap.getHeight());
+        }
 
         int centerX = getMeasuredWidth() / 2;
         int centerY = getMeasuredHeight() / 2;
@@ -140,8 +160,8 @@ public class CustomDrawableButton extends android.support.v7.widget.AppCompatBut
             return this;
         }
 
-        int drawableWidthHalf = drawableWidth / 2;
-        int drawableHeightHalf = drawableHeight / 2;
+        int drawableWidthHalf =  this.drawableWidth / 2;
+        int drawableHeightHalf =  this.drawableHeight / 2;
 
         String str = getText().toString();
         if(allCaps){
@@ -159,30 +179,30 @@ public class CustomDrawableButton extends android.support.v7.widget.AppCompatBut
 
 
 
-        switch (drawablePosi) {
+        switch (this.drawablePosi) {
             case DRAWABLE_POSI_LEFT:
-                drawBitmapDstRect = new Rect(centerX - textWidthHalf - drawableTextDistance - drawableWidth
+                drawBitmapDstRect = new Rect(centerX - textWidthHalf -  this.drawableTextDistance -  this.drawableWidth
                         ,centerY - drawableHeightHalf
-                        ,centerX - textWidthHalf - drawableTextDistance
+                        ,centerX - textWidthHalf -  this.drawableTextDistance
                         ,centerY + drawableHeightHalf);
                 break;
             case DRAWABLE_POSI_TOP:
                 drawBitmapDstRect = new Rect(centerX - drawableWidthHalf
-                        ,centerY - textHeightHalf - drawableTextDistance - drawableHeight
+                        ,centerY - textHeightHalf -  this.drawableTextDistance -  this.drawableHeight
                         ,centerX + drawableWidthHalf
-                        ,centerY - textHeightHalf - drawableTextDistance);
+                        ,centerY - textHeightHalf -  this.drawableTextDistance);
                 break;
             case DRAWABLE_POSI_RIGHT:
-                drawBitmapDstRect = new Rect(centerX + textWidthHalf + drawableTextDistance
+                drawBitmapDstRect = new Rect(centerX + textWidthHalf +  this.drawableTextDistance
                         ,centerY - drawableHeightHalf
-                        ,centerX + textWidthHalf + drawableTextDistance+ drawableWidth
+                        ,centerX + textWidthHalf +  this.drawableTextDistance+  this.drawableWidth
                         ,centerY + drawableHeightHalf);
                 break;
             case DRAWABLE_POSI_BOTTOM:
                 drawBitmapDstRect = new Rect(centerX - drawableWidthHalf
-                        ,centerY + textHeightHalf + drawableTextDistance
+                        ,centerY + textHeightHalf +  this.drawableTextDistance
                         ,centerX + drawableWidthHalf
-                        ,centerY + textHeightHalf + drawableTextDistance + drawableHeight);
+                        ,centerY + textHeightHalf +  this.drawableTextDistance +  this.drawableHeight);
                 break;
             case DRAWABLE_POSI_NONE:
             default:

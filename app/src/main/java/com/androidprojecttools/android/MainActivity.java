@@ -107,6 +107,7 @@ public class MainActivity extends AppCompatActivity {
                 imageView.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
                 //设置图像的显示尺寸
                 imageView.setLayoutParams(new FancyCoverFlow.LayoutParams(300, 400));
+
             }
             //显示图像
             imageView.setImageResource(this.getItem(i));
