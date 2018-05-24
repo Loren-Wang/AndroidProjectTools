@@ -59,7 +59,7 @@ public class CustomDrawableButton extends android.support.v7.widget.AppCompatBut
         drawableTextDistance = attributes.getDimensionPixelOffset(R.styleable.CustomDrawableButton_drawableTextDistance,drawableTextDistance);
         drawableResId = attributes.getResourceId(R.styleable.CustomDrawableButton_drawableResId,-1);
 
-        setDrawablePosi(drawablePosi,drawableWidth,drawableHeight,drawableTextDistance,drawableResId);
+        setDrawable(drawablePosi,drawableWidth,drawableHeight,drawableTextDistance,drawableResId);
 
         super.setGravity(Gravity.CENTER);
         setIncludeFontPadding(false);
@@ -68,7 +68,7 @@ public class CustomDrawableButton extends android.support.v7.widget.AppCompatBut
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
-        setDrawablePosi(drawablePosi,drawableWidth,drawableHeight,drawableTextDistance,drawableResId);
+        setDrawable(drawablePosi,drawableWidth,drawableHeight,drawableTextDistance,drawableResId);
     }
 
     @Override
@@ -90,7 +90,7 @@ public class CustomDrawableButton extends android.support.v7.widget.AppCompatBut
             drawable.setBounds(0, 0, drawableWidth, drawableHeight);//第一0是距左右边距离，第二0是距上下边距离，第三69长度,第四宽度
             drawBitmap = ((BitmapDrawable)drawable).getBitmap();
             drawBitmapSrcRect = new Rect(0, 0, drawBitmap.getWidth(), drawBitmap.getHeight());
-            setDrawablePosi(drawablePosi,drawableWidth,drawableHeight,drawableTextDistance,drawableResId);
+            setDrawable(drawablePosi,drawableWidth,drawableHeight,drawableTextDistance,drawableResId);
             invalidate();
         }
     }
@@ -98,14 +98,14 @@ public class CustomDrawableButton extends android.support.v7.widget.AppCompatBut
     @Override
     public void setText(CharSequence text, BufferType type) {
         super.setText(text, type);
-        setDrawablePosi(drawablePosi,drawableWidth,drawableHeight,drawableTextDistance,drawableResId);
+        setDrawable(drawablePosi,drawableWidth,drawableHeight,drawableTextDistance,drawableResId);
         invalidate();
     }
 
     @Override
     public void setTextSize(int unit, float size) {
         super.setTextSize(unit, size);
-        setDrawablePosi(drawablePosi,drawableWidth,drawableHeight,drawableTextDistance,drawableResId);
+        setDrawable(drawablePosi,drawableWidth,drawableHeight,drawableTextDistance,drawableResId);
         invalidate();
     }
 
@@ -126,7 +126,7 @@ public class CustomDrawableButton extends android.support.v7.widget.AppCompatBut
      * @return
      */
     @SuppressLint("ResourceType")
-    public synchronized CustomDrawableButton setDrawablePosi(Integer drawablePosi
+    public synchronized CustomDrawableButton setDrawable(Integer drawablePosi
             , Integer drawableWidth, Integer drawableHeight, Integer drawableTextDistance, @DrawableRes Integer drawableResId) {
 
         if(drawablePosi != null) {
@@ -152,6 +152,13 @@ public class CustomDrawableButton extends android.support.v7.widget.AppCompatBut
             drawable.setBounds(0, 0, this.drawableWidth,  this.drawableHeight);//第一0是距左右边距离，第二0是距上下边距离，第三69长度,第四宽度
             drawBitmap = ((BitmapDrawable)drawable).getBitmap();
             drawBitmapSrcRect = new Rect(0, 0, drawBitmap.getWidth(), drawBitmap.getHeight());
+        }else {
+            if(drawBitmap != null && !drawBitmap.isRecycled()){
+                drawBitmap.recycle();
+                drawBitmap = null;
+            }
+            drawBitmapSrcRect = null;
+            drawBitmapDstRect = null;
         }
 
         int centerX = getMeasuredWidth() / 2;
