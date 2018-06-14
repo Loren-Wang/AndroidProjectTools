@@ -45,6 +45,7 @@ import java.util.List;
  */
 
 public class SudokuSwipeGesturesView extends View {
+    private final String TAG = getClass().getName();
     private final int CIRCLE_SHOW_TYPE_1 = 1;//显示模式1,内圈实心，外圈空心带边框，滑动时内外圈变色，连接线从中心点出来，此模式下需要传入边框宽度
     private final int CIRCLE_SHOW_TYPE_2 = 2;//显示模式2,内圈实心，外圈实心，未选中的时候内圈显示，外圈不显示，滑动时外圈显示，连接线从中心点出来
 
@@ -83,10 +84,12 @@ public class SudokuSwipeGesturesView extends View {
     private final int DATA_STATE_FINISH = 2;//当前的数据状态是结束输入
     private final int DATA_STATE_TRUE = 3;//当前的数据状态是正确输入
     private final int DATA_STATE_FALSE = 4;//当前的数据状态是错误输入
+    private final int DATA_STATE_WAIT_FINISH = 5;//当前的数据状态是等待结束
     private int nowDataState = DATA_STATE_INIT;//当前的数据状态
     private boolean allowDraw = true;//是否允许绘制
 
     private final int RESET_VIEW = 0;//重置视图
+    private final int WAIT_FINISH = 1;//延迟结束
     private Handler handler = new Handler(){
         @Override
         public void handleMessage(Message msg) {
@@ -94,6 +97,13 @@ public class SudokuSwipeGesturesView extends View {
             switch (msg.what){
                 case RESET_VIEW:
                     resetAll();
+                    break;
+                case WAIT_FINISH:
+                    if(nowDataState == DATA_STATE_WAIT_FINISH) {
+                        nowDataState = DATA_STATE_FINISH;
+                        finishInput();
+                        invalidate();
+                    }
                     break;
                 default:
                     break;
@@ -206,14 +216,25 @@ public class SudokuSwipeGesturesView extends View {
             nowY = (int) event.getY();
             switch (event.getAction()) {
                 case MotionEvent.ACTION_DOWN:
-                    resetAll();
+                    if(nowDataState == DATA_STATE_FINISH
+                            || nowDataState == DATA_STATE_TRUE
+                            || nowDataState == DATA_STATE_FALSE) {
+                        resetAll();
+                    }else if(nowDataState == DATA_STATE_WAIT_FINISH){
+                        nowDataState = DATA_STATE_INPUT;
+                    }
                 case MotionEvent.ACTION_MOVE:
-                    addSelectCircle(getOuterCircle(nowX, nowY));
-                    nowDataState = DATA_STATE_INPUT;
+                    if(nowDataState == DATA_STATE_INIT
+                            || nowDataState == DATA_STATE_WAIT_FINISH
+                            || nowDataState == DATA_STATE_INPUT) {
+                        nowDataState = DATA_STATE_INPUT;
+                        addSelectCircle(getOuterCircle(nowX, nowY));
+                    }
                     break;
                 case MotionEvent.ACTION_UP:
-                    nowDataState = DATA_STATE_FINISH;
-                    finishInput();
+                    nowDataState = DATA_STATE_WAIT_FINISH;
+                    handler.removeMessages(WAIT_FINISH);
+                    handler.sendEmptyMessageDelayed(WAIT_FINISH,10);
                     break;
                 default:
                     break;

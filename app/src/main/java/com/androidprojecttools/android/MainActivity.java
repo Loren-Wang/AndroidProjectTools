@@ -48,7 +48,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void finishInput(int[] posis) {
 //                ((SudokuSwipeGesturesView)findViewById(R.id.test)).resetAll();
-                ((SudokuSwipeGesturesView)findViewById(R.id.test)).setAllowDraw(false);
+//                ((SudokuSwipeGesturesView)findViewById(R.id.test)).setAllowDraw(false);
             }
         });
 
