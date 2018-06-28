@@ -9,6 +9,7 @@
           <set>
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/AdnroidProjectTools" />
+            <option value="$PROJECT_DIR$/AndroidAnimFromLorenWang" />
             <option value="$PROJECT_DIR$/AndroidBlueToothFromLorenWang" />
             <option value="$PROJECT_DIR$/AndroidCustomViewsFromLorenWang" />
             <option value="$PROJECT_DIR$/AndroidProjectCustomViews" />

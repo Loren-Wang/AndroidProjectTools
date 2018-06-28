@@ -1,1 +1,1 @@
-include ':app', ':AdnroidProjectTools', ':AndroidProjectCustomViews', ':AndroidBlueToothFromLorenWang', ':AndroidToolsFromLorenWang', ':AndroidCustomViewsFromLorenWang'
+include ':app', ':AndroidBlueToothFromLorenWang', ':AndroidToolsFromLorenWang', ':AndroidCustomViewsFromLorenWang', ':AndroidAnimFromLorenWang'

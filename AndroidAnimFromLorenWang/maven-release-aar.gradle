@@ -3,8 +3,8 @@ apply plugin: 'maven'
 
 // 2.maven-信息
 ext {// ext is a gradle closure allowing the declaration of global properties
-    PUBLISH_GROUP_ID = "com.lorenwang.customviews.android"
-    PUBLISH_ARTIFACT_ID = 'AndroidCustomViewsFromLorenWang'
+    PUBLISH_GROUP_ID = "com.lorenwang.anim.android"
+    PUBLISH_ARTIFACT_ID = 'AndroidAnimFromLorenWang'
     PUBLISH_VERSION = android.defaultConfig.versionName
 }
 
