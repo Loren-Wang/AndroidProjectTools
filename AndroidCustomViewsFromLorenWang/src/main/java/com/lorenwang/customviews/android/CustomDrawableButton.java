@@ -34,6 +34,10 @@ public class CustomDrawableButton extends android.support.v7.widget.AppCompatBut
     private Paint drawBitmapPaint = new Paint();
 
     private boolean  allCaps = false;
+    private Integer paddingLeft;
+    private Integer paddingTop;
+    private Integer paddingRight;
+    private Integer paddingBottom;
 
     public CustomDrawableButton(Context context) {
         super(context);
@@ -110,11 +114,6 @@ public class CustomDrawableButton extends android.support.v7.widget.AppCompatBut
     }
 
     @Override
-    public void setGravity(int gravity) {
-        super.setGravity(Gravity.CENTER);
-    }
-
-    @Override
     public void setAllCaps(boolean allCaps) {
         super.setAllCaps(allCaps);
         this.allCaps = allCaps;
@@ -161,20 +160,53 @@ public class CustomDrawableButton extends android.support.v7.widget.AppCompatBut
             drawBitmapDstRect = null;
         }
 
+        if(paddingLeft == null){
+            paddingLeft = getPaddingLeft();
+        }
+        if(paddingTop == null){
+            paddingTop = getPaddingTop();
+        }
+        if(paddingRight == null){
+            paddingRight = getPaddingRight();
+        }
+        if(paddingBottom == null){
+            paddingBottom = getPaddingBottom();
+        }
+
+        //padding改变，做变更
+        paddingChanged(paddingLeft,paddingTop,paddingRight,paddingBottom);
+
+        return this;
+    }
+
+    @Override
+    public void setPadding(int left, int top, int right, int bottom) {
+        this.paddingLeft = left;
+        this.paddingTop = top;
+        this.paddingRight = right;
+        this.paddingBottom = bottom;
+        //padding改变，做变更
+        paddingChanged(paddingLeft,paddingTop,paddingRight,paddingBottom);
+    }
+
+
+    public void paddingChanged(int left, int top, int right, int bottom){
+
+        //中心点坐标
         int centerX = getMeasuredWidth() / 2;
         int centerY = getMeasuredHeight() / 2;
         if(centerX <= 0 || centerY <= 0){
-            return this;
+            return ;
         }
-
+        //图片宽高的一半
         int drawableWidthHalf =  this.drawableWidth / 2;
         int drawableHeightHalf =  this.drawableHeight / 2;
 
+        //获取文字宽高
         String str = getText().toString();
         if(allCaps){
             str = str.toUpperCase();
         }
-
         Paint paint = new Paint();
         paint.setTextSize(getTextSize());
         Rect rect = new Rect();
@@ -185,37 +217,57 @@ public class CustomDrawableButton extends android.support.v7.widget.AppCompatBut
         paint = null;
 
 
-
-        switch (this.drawablePosi) {
-            case DRAWABLE_POSI_LEFT:
-                drawBitmapDstRect = new Rect(centerX - textWidthHalf -  this.drawableTextDistance -  this.drawableWidth
-                        ,centerY - drawableHeightHalf
-                        ,centerX - textWidthHalf -  this.drawableTextDistance
-                        ,centerY + drawableHeightHalf);
-                break;
-            case DRAWABLE_POSI_TOP:
-                drawBitmapDstRect = new Rect(centerX - drawableWidthHalf
-                        ,centerY - textHeightHalf -  this.drawableTextDistance -  this.drawableHeight
-                        ,centerX + drawableWidthHalf
-                        ,centerY - textHeightHalf -  this.drawableTextDistance);
-                break;
-            case DRAWABLE_POSI_RIGHT:
-                drawBitmapDstRect = new Rect(centerX + textWidthHalf +  this.drawableTextDistance
-                        ,centerY - drawableHeightHalf
-                        ,centerX + textWidthHalf +  this.drawableTextDistance+  this.drawableWidth
-                        ,centerY + drawableHeightHalf);
-                break;
-            case DRAWABLE_POSI_BOTTOM:
-                drawBitmapDstRect = new Rect(centerX - drawableWidthHalf
-                        ,centerY + textHeightHalf +  this.drawableTextDistance
-                        ,centerX + drawableWidthHalf
-                        ,centerY + textHeightHalf +  this.drawableTextDistance +  this.drawableHeight);
-                break;
-            case DRAWABLE_POSI_NONE:
-            default:
-                drawBitmapDstRect = null;
-                break;
+        //如果文字方式是在左上的话那么需要重新设置padding
+        if(getGravity() == Gravity.LEFT){
+            //如果位置是在左侧的话
+            if(this.drawablePosi == DRAWABLE_POSI_LEFT){
+                if(drawableHeight > rect.height()) {
+                    super.setPadding(left + drawableWidth + drawableTextDistance, top + (drawableHeight - rect.height()), right, bottom);
+                }else {
+                    super.setPadding(left + drawableWidth + drawableTextDistance, top, right, bottom);
+                }
+                drawBitmapDstRect = new Rect(left,top,left + drawableWidth,top + drawableHeight);
+            }
+        }else if(getGravity() == (Gravity.LEFT | Gravity.CENTER_VERTICAL)) {
+            //如果文字位置是在左侧中间的话同时图片也在左侧
+            if(this.drawablePosi == DRAWABLE_POSI_LEFT){
+                super.setPadding(left + drawableWidth + drawableTextDistance, top, right, bottom);
+                drawBitmapDstRect = new Rect(left,centerY - drawableHeightHalf,left + drawableWidth,centerY + drawableHeightHalf);
+            }
+        }else {
+            //其他的先都按默认走
+            setGravity(Gravity.CENTER);
+            setPadding(left,top,right,bottom);
+            switch (this.drawablePosi) {
+                case DRAWABLE_POSI_LEFT:
+                    drawBitmapDstRect = new Rect(centerX - textWidthHalf -  this.drawableTextDistance -  this.drawableWidth
+                            ,centerY - drawableHeightHalf
+                            ,centerX - textWidthHalf -  this.drawableTextDistance
+                            ,centerY + drawableHeightHalf);
+                    break;
+                case DRAWABLE_POSI_TOP:
+                    drawBitmapDstRect = new Rect(centerX - drawableWidthHalf
+                            ,centerY - textHeightHalf -  this.drawableTextDistance -  this.drawableHeight
+                            ,centerX + drawableWidthHalf
+                            ,centerY - textHeightHalf -  this.drawableTextDistance);
+                    break;
+                case DRAWABLE_POSI_RIGHT:
+                    drawBitmapDstRect = new Rect(centerX + textWidthHalf +  this.drawableTextDistance
+                            ,centerY - drawableHeightHalf
+                            ,centerX + textWidthHalf +  this.drawableTextDistance+  this.drawableWidth
+                            ,centerY + drawableHeightHalf);
+                    break;
+                case DRAWABLE_POSI_BOTTOM:
+                    drawBitmapDstRect = new Rect(centerX - drawableWidthHalf
+                            ,centerY + textHeightHalf +  this.drawableTextDistance
+                            ,centerX + drawableWidthHalf
+                            ,centerY + textHeightHalf +  this.drawableTextDistance +  this.drawableHeight);
+                    break;
+                case DRAWABLE_POSI_NONE:
+                default:
+                    drawBitmapDstRect = null;
+                    break;
+            }
         }
-        return this;
     }
 }

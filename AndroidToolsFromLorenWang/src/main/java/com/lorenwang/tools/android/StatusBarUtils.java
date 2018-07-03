@@ -80,15 +80,20 @@ public class StatusBarUtils {
     /**
      * 当状态栏背景为亮色的时候需要把状态栏图标以及文字改成黑色
      * @param activity
+     * @param isFullscreen 是否全屏显示，仅针对于非小米和魅族手机
      */
-    public void setStatusBarLightMode(Activity activity){
+    public void setStatusBarLightMode(Activity activity,boolean isFullscreen){
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             if(MobilePhoneBrandUtils.getInstance().isXiaoMiMobile()){
                 setStatusBarLightModeForXiaoMi(activity,true);
             }else if(MobilePhoneBrandUtils.getInstance().isMeiZuMobile()){
                 setStatusBarLightModeForMeiZu(activity,true);
             }else {
-                activity.getWindow().getDecorView().setSystemUiVisibility( View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN|View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
+                if(isFullscreen) {
+                    activity.getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN | View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
+                }else {
+                    activity.getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
+                }
             }
         }
     }

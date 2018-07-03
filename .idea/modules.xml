@@ -2,11 +2,9 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/AdnroidProjectTools/AdnroidProjectTools.iml" filepath="$PROJECT_DIR$/AdnroidProjectTools/AdnroidProjectTools.iml" />
       <module fileurl="file://$PROJECT_DIR$/AndroidAnimFromLorenWang/AndroidAnimFromLorenWang.iml" filepath="$PROJECT_DIR$/AndroidAnimFromLorenWang/AndroidAnimFromLorenWang.iml" />
       <module fileurl="file://$PROJECT_DIR$/AndroidBlueToothFromLorenWang/AndroidBlueToothFromLorenWang.iml" filepath="$PROJECT_DIR$/AndroidBlueToothFromLorenWang/AndroidBlueToothFromLorenWang.iml" />
       <module fileurl="file://$PROJECT_DIR$/AndroidCustomViewsFromLorenWang/AndroidCustomViewsFromLorenWang.iml" filepath="$PROJECT_DIR$/AndroidCustomViewsFromLorenWang/AndroidCustomViewsFromLorenWang.iml" />
-      <module fileurl="file://$PROJECT_DIR$/AndroidProjectCustomViews/AndroidProjectCustomViews.iml" filepath="$PROJECT_DIR$/AndroidProjectCustomViews/AndroidProjectCustomViews.iml" />
       <module fileurl="file://$PROJECT_DIR$/AndroidProjectTools.iml" filepath="$PROJECT_DIR$/AndroidProjectTools.iml" />
       <module fileurl="file://$PROJECT_DIR$/AndroidToolsFromLorenWang/AndroidToolsFromLorenWang.iml" filepath="$PROJECT_DIR$/AndroidToolsFromLorenWang/AndroidToolsFromLorenWang.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
