@@ -65,7 +65,6 @@ public class CustomDrawableButton extends android.support.v7.widget.AppCompatBut
 
         setDrawable(drawablePosi,drawableWidth,drawableHeight,drawableTextDistance,drawableResId);
 
-        super.setGravity(Gravity.CENTER);
         setIncludeFontPadding(false);
     }
 
@@ -211,8 +210,10 @@ public class CustomDrawableButton extends android.support.v7.widget.AppCompatBut
         paint.setTextSize(getTextSize());
         Rect rect = new Rect();
         paint.getTextBounds(str, 0, str.length(), rect);
-        int textWidthHalf = rect.width() / 2;//文本的宽度
-        int textHeightHalf = rect.height() / 2;//文本的高度
+        int textWidth = rect.width();
+        int textHeight = rect.height();
+        int textWidthHalf = textWidth / 2;//文本的宽度
+        int textHeightHalf = textHeight / 2;//文本的高度
         rect = null;
         paint = null;
 
@@ -234,10 +235,17 @@ public class CustomDrawableButton extends android.support.v7.widget.AppCompatBut
                 super.setPadding(left + drawableWidth + drawableTextDistance, top, right, bottom);
                 drawBitmapDstRect = new Rect(left,centerY - drawableHeightHalf,left + drawableWidth,centerY + drawableHeightHalf);
             }
+        }else if(getGravity() == (Gravity.RIGHT | Gravity.CENTER_VERTICAL)) {
+            //如果文字位置是在左侧中间的话同时图片也在左侧
+            if(this.drawablePosi == DRAWABLE_POSI_LEFT){
+                drawBitmapDstRect = new Rect(getMeasuredWidth() - right - textWidth - drawableTextDistance - drawableWidth
+                        ,centerY - drawableHeightHalf,getMeasuredWidth() - right - textWidth - drawableTextDistance
+                        ,centerY + drawableHeightHalf);
+            }
         }else {
             //其他的先都按默认走
             setGravity(Gravity.CENTER);
-            setPadding(left,top,right,bottom);
+            super.setPadding(left,top,right,bottom);
             switch (this.drawablePosi) {
                 case DRAWABLE_POSI_LEFT:
                     drawBitmapDstRect = new Rect(centerX - textWidthHalf -  this.drawableTextDistance -  this.drawableWidth
