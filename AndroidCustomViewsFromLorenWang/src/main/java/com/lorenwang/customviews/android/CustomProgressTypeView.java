@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Paint;
+import android.support.annotation.FloatRange;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.view.View;
@@ -34,7 +35,7 @@ public class CustomProgressTypeView extends View {
     /***************************************进度条通用变量*******************************************/
     private int progressWidth = 0;//进度条宽度
     private int progressHeight = 0;//进度条高度
-    private double progress = 0.5;//当前进度
+    private double progress = 0;//当前进度
 
     /**************************************第一种进度条变量******************************************/
     private int progressOuterRingWidth = 0;//外圈宽度
@@ -108,12 +109,12 @@ public class CustomProgressTypeView extends View {
                     //绘制外圈
                     canvas.drawCircle(centerX,centerY,outerRingRadius,outerRingPaint);
                     //绘制内圈
-                    if(progress == 0){
+                    if(progress == 1){
                        canvas.drawCircle(centerX,centerY,innerRingRadius,innerRingPaint);
-                    }else if(progress < 1){
+                    }else if(progress > 0 && progress < 1){
                         canvas.drawArc(centerX - innerRingRadius,centerY - innerRingRadius
                                 ,centerX + innerRingRadius,centerY + innerRingRadius
-                                , (float) (360 * progress) - 90, (float) (360 * (1 - progress)) - 90,true,innerRingPaint);
+                                , - 90, (float) (-360 * progress),true,innerRingPaint);
                     }
                     break;
                 default:
@@ -121,5 +122,15 @@ public class CustomProgressTypeView extends View {
             }
         }
         super.onDraw(canvas);
+    }
+
+    public CustomProgressTypeView setProgress(@FloatRange(from = 0,to = 1) double progress) {
+        this.progress = progress;
+        invalidate();
+        return this;
+    }
+
+    public double getProgress() {
+        return progress;
     }
 }
