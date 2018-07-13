@@ -17,11 +17,12 @@ import android.view.View;
  * 思路：
  * 修改人：
  * 修改时间：
- * 备注：1、进度条类型，现在暂时仅只有一种，外层有圈，进度居中，内圈随进度改变，扇形圆满代表着下载完成
+ * 备注：1、进度条类型，外层有圈，进度居中，内圈随进度改变，扇形圆满代表着下载完成（逆时针）
+ *      2、进度条类型，外层有圈，进度居中，内圈随进度改变，扇形归零代表着下载完成（顺时针）
  *
  *
  *
- * 类型1进度条：①.进度条宽、高；
+ * 类型1、2进度条：①.进度条宽、高；
  *            ②.进度条外圈宽度
  *            ③.进度条内外圈间距
  *            ④.进度条内圈颜色
@@ -30,6 +31,7 @@ import android.view.View;
 public class CustomProgressTypeView extends View {
 
     private final int PROGRESS_TYPE_1 = 0;//第一种进度条
+    private final int PROGRESS_TYPE_2 = 1;//第二种进度条
     private int showProgressType = PROGRESS_TYPE_1;//要显示的进度条类型
 
     /***************************************进度条通用变量*******************************************/
@@ -70,6 +72,7 @@ public class CustomProgressTypeView extends View {
         progressHeight = attributes.getDimensionPixelOffset(R.styleable.CustomProgressTypeView_progressHeight,progressHeight);
         switch (showProgressType){
             case PROGRESS_TYPE_1:
+            case PROGRESS_TYPE_2:
                 progressOuterRingWidth = attributes.getDimensionPixelOffset(R.styleable.CustomProgressTypeView_progressOuterRingWidth,progressOuterRingWidth);
                 progressOuterInnerRingDistance = attributes.getDimensionPixelOffset(R.styleable.CustomProgressTypeView_progressOuterInnerRingDistance,progressOuterInnerRingDistance);
                 progressOuterRingColor = attributes.getColor(R.styleable.CustomProgressTypeView_progressOuterRingColor,progressOuterRingColor);
@@ -115,6 +118,18 @@ public class CustomProgressTypeView extends View {
                         canvas.drawArc(centerX - innerRingRadius,centerY - innerRingRadius
                                 ,centerX + innerRingRadius,centerY + innerRingRadius
                                 , - 90, (float) (-360 * progress),true,innerRingPaint);
+                    }
+                    break;
+                case PROGRESS_TYPE_2:
+                    //绘制外圈
+                    canvas.drawCircle(centerX,centerY,outerRingRadius,outerRingPaint);
+                    //绘制内圈
+                    if(progress == 0){
+                        canvas.drawCircle(centerX,centerY,innerRingRadius,innerRingPaint);
+                    }else if(progress > 0 && progress < 1){
+                        canvas.drawArc(centerX - innerRingRadius,centerY - innerRingRadius
+                                ,centerX + innerRingRadius,centerY + innerRingRadius
+                                , - 90,(float) (-360 * (1 - progress)),true,innerRingPaint);
                     }
                     break;
                 default:
