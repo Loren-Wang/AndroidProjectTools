@@ -152,28 +152,43 @@ public final class AppUtils {
 	 * @param context
 	 * @param filePath
 	 */
-	public static void installApp(Context context,String filePath){
+	public static void installApp(Context context,String authority,String filePath){
+		Intent intent = getInstallAppIntent(context, authority, filePath);
+		if(intent != null){
+			context.getApplicationContext().startActivity(intent);
+		}
+	}
+
+	/**
+	 * 获取App安装的intent
+	 * @param context
+	 * @param installAppFilePath
+	 * @param authority The authority of a {@link FileProvider} defined in a
+	 *            {@code <provider>} element in your app's manifest.
+	 * @return
+	 */
+	public static Intent getInstallAppIntent(Context context,String authority,String installAppFilePath){
 		try {
-			context = context.getApplicationContext();
 			if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
 				Intent intent = new Intent();
 				intent.setAction(Intent.ACTION_VIEW);
-				intent.setDataAndType(Uri.fromFile(new File(filePath)), "application/vnd.android.package-archive");
-				context.startActivity(intent);
+				intent.setDataAndType(Uri.fromFile(new File(installAppFilePath)), "application/vnd.android.package-archive");
+				return intent;
 			}else {
 				Intent intent = new Intent(Intent.ACTION_VIEW);
-				File file = (new File(filePath));
+				File file = (new File(installAppFilePath));
 				// 由于没有在Activity环境下启动Activity,设置下面的标签
 				intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 				//参数1 上下文, 参数2 Provider主机地址 和配置文件中保持一致   参数3  共享的文件
-				Uri apkUri = FileProvider.getUriForFile(context, BuildConfig.APPLICATION_ID + ".fileprovider", file);
+				Uri apkUri = FileProvider.getUriForFile(context.getApplicationContext(), authority, file);
 				//添加这一句表示对目标应用临时授权该Uri所代表的文件
 				intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
 				intent.setDataAndType(apkUri, "application/vnd.android.package-archive");
-				context.startActivity(intent);
+				return intent;
 			}
 		}catch (Exception e){
 			LogUtils.logD(TAG,"安装异常：" + e.getMessage());
+			return null;
 		}
 	}
 
