@@ -29,13 +29,13 @@ public final class IOUtils {
 	/**
 	 * 从指定路径的文件中读取Bytes
 	 */
-	public static byte[] readBytes(Context context,String path) {
-		if(!CheckUtils.checkIOUtilsOptionsPermissionAndObjects(context,path)){
+	public static byte[] readBytes(Context context,boolean isCheckPermisstion,String path) {
+		if(isCheckPermisstion && !CheckUtils.checkIOUtilsOptionsPermissionAndObjects(context,path)){
 			return new byte[]{};
 		}
 		try {
 			File file = new File(path);
-			return readBytes(context,file);
+			return readBytes(context,isCheckPermisstion,file);
 		} catch (Exception e) {
 			LogUtils.logE(e);
 			return null;
@@ -45,8 +45,8 @@ public final class IOUtils {
 	/**
 	 * 从File中读取Bytes
 	 */
-	public static byte[] readBytes(Context context,File file) {
-		if(!CheckUtils.checkIOUtilsOptionsPermissionAndObjects(context,file)){
+	public static byte[] readBytes(Context context,boolean isCheckPermisstion,File file) {
+		if(isCheckPermisstion && !CheckUtils.checkIOUtilsOptionsPermissionAndObjects(context,file)){
 			return new byte[]{};
 		}
 			FileInputStream fis = null;
@@ -55,7 +55,7 @@ public final class IOUtils {
 					return null;
 				}
 				fis = new FileInputStream(file);
-				return readBytes(context,fis);
+				return readBytes(context,isCheckPermisstion,fis);
 			} catch (Exception e) {
 				LogUtils.logE(e);
 				return null;
@@ -73,8 +73,8 @@ public final class IOUtils {
 	/**
 	 * 从InputStream中读取Bytes
 	 */
-	public static byte[] readBytes(Context context,InputStream is) {
-		if(!CheckUtils.checkIOUtilsOptionsPermissionAndObjects(context,is)){
+	public static byte[] readBytes(Context context,boolean isCheckPermisstion,InputStream is) {
+		if(isCheckPermisstion && !CheckUtils.checkIOUtilsOptionsPermissionAndObjects(context,is)){
 			return new byte[]{};
 		}
 		ByteArrayOutputStream baos = null;
@@ -105,8 +105,8 @@ public final class IOUtils {
 	/**
 	 * 将InputStream写入File
 	 */
-	public static boolean writeToFile(Context context,File file, InputStream is) {
-		if(!CheckUtils.checkIOUtilsOptionsPermissionAndObjects(context,file,is)){
+	public static boolean writeToFile(Context context,boolean isCheckPermisstion,File file, InputStream is) {
+		if(isCheckPermisstion && !CheckUtils.checkIOUtilsOptionsPermissionAndObjects(context,file,is)){
 			return false;
 		}
 
@@ -138,39 +138,39 @@ public final class IOUtils {
 		}
 	}
 
-	public static boolean writeToFile(Context context,File file, String text) {
-		return writeToFile(context,file, text, Xml.Encoding.UTF_8.toString(), false);
+	public static boolean writeToFile(Context context,boolean isCheckPermisstion,File file, String text) {
+		return writeToFile(context,isCheckPermisstion,file, text, Xml.Encoding.UTF_8.toString(), false);
 	}
 
-	public static boolean writeToFile(Context context,File file, String text, boolean append) {
-		return writeToFile(context,file, text, Xml.Encoding.UTF_8.toString(), append);
+	public static boolean writeToFile(Context context,boolean isCheckPermisstion,File file, String text, boolean append) {
+		return writeToFile(context,isCheckPermisstion,file, text, Xml.Encoding.UTF_8.toString(), append);
 	}
 
-	public static boolean writeToFile(Context context,File file, String text, String encoding) {
+	public static boolean writeToFile(Context context,boolean isCheckPermisstion,File file, String text, String encoding) {
 		try {
-			return writeToFile(context,file, text.getBytes(encoding), false);
+			return writeToFile(context,isCheckPermisstion,file, text.getBytes(encoding), false);
 		} catch (UnsupportedEncodingException e) {
 			LogUtils.logE(e);
 			return false;
 		}
 	}
 
-	public static boolean writeToFile(Context context,File file, String text, String encoding,
+	public static boolean writeToFile(Context context,boolean isCheckPermisstion,File file, String text, String encoding,
 									  boolean append) {
 		try {
-			return writeToFile(context,file, text.getBytes(encoding), append);
+			return writeToFile(context,isCheckPermisstion,file, text.getBytes(encoding), append);
 		} catch (UnsupportedEncodingException e) {
 			LogUtils.logE(e);
 			return false;
 		}
 	}
 
-	public static boolean writeToFile(Context context,File file, byte[] buffer) {
-		return writeToFile(context,file, buffer, false);
+	public static boolean writeToFile(Context context,boolean isCheckPermisstion,File file, byte[] buffer) {
+		return writeToFile(context,isCheckPermisstion,file, buffer, false);
 	}
 
-	public static boolean writeToFile(Context context,File file, byte[] buffer, boolean append) {
-		if(!CheckUtils.checkIOUtilsOptionsPermissionAndObjects(context,file,buffer,append)){
+	public static boolean writeToFile(Context context,boolean isCheckPermisstion,File file, byte[] buffer, boolean append) {
+		if(isCheckPermisstion && !CheckUtils.checkIOUtilsOptionsPermissionAndObjects(context,file,buffer,append)){
 			return false;
 		}
 		FileOutputStream fos = null;
@@ -205,8 +205,8 @@ public final class IOUtils {
 	 * @param localCachePath 缓存地址
 	 * @param isLocalCachePathDir 缓存地址是否是文件夹
 	 */
-	public static boolean saveBitmap(Context context,Bitmap bitmap, String localCachePath,boolean isLocalCachePathDir, Bitmap.CompressFormat format){
-		if(!CheckUtils.checkIOUtilsOptionsPermissionAndObjects(context,bitmap,localCachePath,format)){
+	public static boolean saveBitmap(Context context,boolean isCheckPermisstion,Bitmap bitmap, String localCachePath,boolean isLocalCachePathDir, Bitmap.CompressFormat format){
+		if(isCheckPermisstion && !CheckUtils.checkIOUtilsOptionsPermissionAndObjects(context,bitmap,localCachePath,format)){
 			return false;
 		}
 		String savePath = "";
@@ -267,7 +267,10 @@ public final class IOUtils {
 	 * @param newPath String 复制后路径 如：f:/fqf.txt
 	 * @return boolean
 	 */
-	public static boolean copyFile(String oldPath, String newPath) {
+	public static boolean copyFile(Context context,boolean isCheckPermisstion,String oldPath, String newPath) {
+		if(isCheckPermisstion && !CheckUtils.checkIOUtilsOptionsPermissionAndObjects(context)){
+			return false;
+		}
 		FileOutputStream fs = null;
 		try {
 			int bytesum = 0;

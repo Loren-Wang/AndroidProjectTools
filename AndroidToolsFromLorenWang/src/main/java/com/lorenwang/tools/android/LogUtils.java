@@ -26,7 +26,7 @@ public final class LogUtils {
 	private static final String LOG_FILE_NAME = "ct.log";
 	// ------------------------------------------------------ Fields
 	//private static boolean isDebuggable = Settings.isDebuggable;
-	private static boolean isDebuggable = BuildConfig.BUILD_TYPE.equals("debug");
+	public static boolean isDebuggable = BuildConfig.BUILD_TYPE.equals("debug");
 
 	// ------------------------------------------------------ Public Methods
 
