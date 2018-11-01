@@ -38,7 +38,7 @@ public class SlideTabLayout extends View {
     private boolean isTabSelectBold = false;//tab选中文本是否加粗
 
     private float lineHeight;//切换线的高度
-    private float lineWidth;//切换线宽度
+    private float lineWidth;//切换线宽度,默认同文本宽度相同
     private int lineColor;//切换线颜色
 
     private Paint tabSelectPaint;//选择文字画笔
@@ -55,12 +55,12 @@ public class SlideTabLayout extends View {
     private float viewHeight = 0;//控件高度
     private int nowSelectPosi = 0;//当前选择的位置
     private int lastSelectPosi = 0;//上一次选择的位置
-    private float everyLastTextWidth = 0;//每一个文本的宽度，默认是均分控件宽度
+    private float everyLastTextViewWidth = 0;//每一个文本控件的宽度，默认是均分总控件宽度
+    private float everyLastTextContentWidth = 0;//每一个文本内容的宽度，默认第一个tab文本宽度
     private int textShowHeight;
 
     private float nowLinePaddingLeft = 0;//当前下滑线左侧的偏移
     private float lastNowLinePaddingLeft = 0;//开始位移之前的左侧位移
-    private float lastLineWidth = 0;//上一次的下划线宽度
     private boolean isFirstSetData = false;//是否是第一次设置数据
 
     //间隔线相关
@@ -86,9 +86,9 @@ public class SlideTabLayout extends View {
             int addLeft = 0;//计算左侧间距
             for (int i = 0; i < position + 1; i++) {
                 if (position == i) {//viewpager向左滑动时，position为当前页码-1，享有滑动时为当前页码
-                    addLeft += everyLastTextWidth * positionOffset;
+                    addLeft += everyLastTextViewWidth * positionOffset;
                 } else {
-                    addLeft += everyLastTextWidth;
+                    addLeft += everyLastTextViewWidth;
                 }
             }
 
@@ -169,7 +169,7 @@ public class SlideTabLayout extends View {
                     tabSelectPaint.getTextBounds(text, 0, text.length(), bounds);
                     baseLine = (getMeasuredHeight() - fm.bottom + fm.top) / 2 - fm.top;
 
-                    canvas.drawText(text, getPaddingLeft() + everyLastTextWidth * i + (everyLastTextWidth - textWidth) / 2, getPaddingTop() + baseLine, tabSelectPaint);
+                    canvas.drawText(text, getPaddingLeft() + everyLastTextViewWidth * i + (everyLastTextViewWidth - textWidth) / 2, getPaddingTop() + baseLine, tabSelectPaint);
                 } else {
                     fm = tabNoSelectPaint.getFontMetrics();
                     textWidth = tabNoSelectPaint.measureText(text);
@@ -177,18 +177,18 @@ public class SlideTabLayout extends View {
                     tabSelectPaint.getTextBounds(text, 0, text.length(), bounds);
                     baseLine = (getMeasuredHeight() - fm.bottom + fm.top) / 2 - fm.top;
 
-                    canvas.drawText(text, getPaddingLeft() + everyLastTextWidth * i + (everyLastTextWidth - textWidth) / 2, getPaddingTop() + baseLine, tabNoSelectPaint);
+                    canvas.drawText(text, getPaddingLeft() + everyLastTextViewWidth * i + (everyLastTextViewWidth - textWidth) / 2, getPaddingTop() + baseLine, tabNoSelectPaint);
                 }
 
                 //左侧边距为0的情况
                 if (isFirstSetData) {
                     isFirstSetData = false;
-                    lastNowLinePaddingLeft = nowLinePaddingLeft = (everyLastTextWidth - textWidth) / 2;
+                    lastNowLinePaddingLeft = nowLinePaddingLeft = (everyLastTextViewWidth - textWidth) / 2;
                 }
 
                 if (isShowIntervalLine && i > 0) {
                     if (intervalLinePaint != null) {
-                        startx = everyLastTextWidth * i;
+                        startx = everyLastTextViewWidth * i;
                         startY = (viewHeight - intervalLineHeight) / 2;
                         endx = startx + intervalLineWidth;
                         endy = startY + intervalLineHeight;
@@ -199,9 +199,12 @@ public class SlideTabLayout extends View {
             }
 
             //下划线
-            float right = getPaddingLeft() + nowLinePaddingLeft + lineWidth;
+            float right = getPaddingLeft() + nowLinePaddingLeft + everyLastTextContentWidth - ((everyLastTextContentWidth - lineWidth) / 2);
             right = right > (viewWidth - getPaddingLeft() - getPaddingRight()) ? (viewWidth - getPaddingLeft() - getPaddingRight()) : right;
-            canvas.drawRect(getPaddingLeft() + nowLinePaddingLeft, getPaddingTop() + viewHeight - lineHeight, right, viewHeight - getPaddingBottom(), tabLinePaint);
+            canvas.drawRect(getPaddingLeft() + nowLinePaddingLeft + ((everyLastTextContentWidth - lineWidth) / 2),
+                    getPaddingTop() + viewHeight - lineHeight,
+                    right,
+                    viewHeight - getPaddingBottom(), tabLinePaint);
 
         } else {
             super.onDraw(canvas);
@@ -242,7 +245,7 @@ public class SlideTabLayout extends View {
      */
     private boolean judge(float nowX, float nowY) {
         if (Math.abs(nowX - lastX) < 50 && Math.abs(nowY - lastY) < 50) {
-            int clickPosi = (int) (nowX / everyLastTextWidth);
+            int clickPosi = (int) (nowX / everyLastTextViewWidth);
             viewPager.setCurrentItem(clickPosi);
             return true;
         } else {
@@ -265,6 +268,7 @@ public class SlideTabLayout extends View {
             , boolean isTabTextViewBold
             , Integer tabSelectColor
             , boolean isTabSelectBold
+            , Integer lineWidth
             , Integer lineHeight
             , Integer lineColor
             , @Nullable double viewWidth
@@ -276,6 +280,7 @@ public class SlideTabLayout extends View {
         this.isTabTextViewBold = isTabTextViewBold;
         this.tabSelectColor = tabSelectColor != null ? tabSelectColor : this.tabSelectColor;
         this.isTabSelectBold = isTabSelectBold;
+
         this.lineHeight = lineHeight != null ? lineHeight : this.lineHeight;
         this.lineColor = lineColor != null ? lineColor : this.tabSelectColor;
         this.viewWidth = (float) viewWidth;
@@ -284,12 +289,12 @@ public class SlideTabLayout extends View {
         this.viewPager = viewPager;
 
         //初始化部分常量
-        everyLastTextWidth = (float) ((viewWidth - getPaddingLeft() - getPaddingRight()) * 1.0 / tabTitleList.size());
+        everyLastTextViewWidth = (float) ((viewWidth - getPaddingLeft() - getPaddingRight()) * 1.0 / tabTitleList.size());
         textShowHeight = (int) ((viewHeight - getPaddingTop() - getPaddingBottom()) - this.lineHeight);
 
         //初始化部分动态变量
-        lineWidth = tabSelectPaint.measureText(tabTitleList.get(0));
-        lastLineWidth = lineWidth;
+        everyLastTextContentWidth = tabSelectPaint.measureText(tabTitleList.get(0));
+        this.lineWidth = lineWidth != null ? lineWidth : everyLastTextContentWidth;
         isFirstSetData = true;
 
         viewPager.removeOnPageChangeListener(onPageChangeListener);
@@ -317,6 +322,7 @@ public class SlideTabLayout extends View {
             , boolean isTabTextViewBold
             , Integer tabSelectColor
             , boolean isTabSelectBold
+            , Integer lineWidth
             , Integer lineHeight
             , Integer lineColor
             , @Nullable double viewWidth
@@ -332,7 +338,8 @@ public class SlideTabLayout extends View {
         intervalLinePaint.setAntiAlias(true);
         intervalLinePaint.setColor(intervalLineColor);
         setViewRules(tabTextViewColor, tabTextViewSize, isTabTextViewBold
-                , tabSelectColor, isTabSelectBold, lineHeight, lineColor, viewWidth, viewHeight, tabTitleList, viewPager);
+                , tabSelectColor, isTabSelectBold, lineWidth, lineHeight, lineColor
+                , viewWidth, viewHeight, tabTitleList, viewPager);
     }
 
     private void setPaint() {
