@@ -1,1 +1,1 @@
-include ':app', ':AndroidBlueToothFromLorenWang', ':AndroidToolsFromLorenWang', ':AndroidCustomViewsFromLorenWang', ':AndroidAnimFromLorenWang'
+include ':app', ':AndroidBlueToothFromLorenWang', ':AndroidToolsFromLorenWang', ':AndroidCustomViewsFromLorenWang', ':AndroidAnimFromLorenWang', ':AndroidResolutionRatio750x1334FromLorenWang'
