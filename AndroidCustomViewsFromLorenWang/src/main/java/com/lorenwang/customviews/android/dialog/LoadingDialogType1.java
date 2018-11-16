@@ -25,4 +25,9 @@ public class LoadingDialogType1 extends BaseDialog {
         setCanceledOnTouchOutside(false);
         getWindow().setWindowAnimations(R.style.dialog_anim_for_center);
     }
+
+    @Override
+    public void onBackPressed() {
+
+    }
 }
