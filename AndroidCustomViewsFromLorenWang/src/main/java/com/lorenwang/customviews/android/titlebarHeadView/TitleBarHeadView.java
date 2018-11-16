@@ -1,5 +1,6 @@
 package com.lorenwang.customviews.android.titlebarHeadView;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Color;
@@ -9,6 +10,7 @@ import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.TextView;
 
@@ -38,7 +40,7 @@ import com.lorenwang.customviews.android.R;
  * 修改时间：
  * 备注：
  */
-public class TitleBarHeadView extends FrameLayout implements View.OnClickListener {
+public class TitleBarHeadView extends FrameLayout{
     private final int LAYOUT_TYPE_0 = 0;//（0）自定义view
     private final int LAYOUT_TYPE_1 = 1;//（1）后退、标题
     private final int LAYOUT_TYPE_2 = 2;//（2）后退、标题、右侧按钮
@@ -49,6 +51,10 @@ public class TitleBarHeadView extends FrameLayout implements View.OnClickListene
     private final int LAYOUT_TYPE_7 = 7;//（7）后退、标题、右侧图标
     private final int LAYOUT_TYPE_8 = 8;//（8）标题、右侧图标
     private final int LAYOUT_TYPE_9 = 9;//（9）后退、右侧图标
+    private int backColor;//后退按钮颜色
+    private int backImgRes;//后退资源图片
+    private int backImgWidth;//后退按钮宽高
+    private int backImgheight;//后退按钮高
     private int layoutType = LAYOUT_TYPE_1;//布局类型
 
     public TitleBarHeadView(Context context) {
@@ -87,7 +93,7 @@ public class TitleBarHeadView extends FrameLayout implements View.OnClickListene
         if (layoutView != null) {
             addView(layoutView);
             //设置view数据
-            setLayoutChildView(context,attributes);
+            setLayoutChildView(context, attributes);
         }
     }
 
@@ -147,6 +153,12 @@ public class TitleBarHeadView extends FrameLayout implements View.OnClickListene
             case LAYOUT_TYPE_0:
                 break;
             case LAYOUT_TYPE_2:
+                //设置后退按钮样式
+                setBackImgBtn(attributes);
+                //设置标题
+                setTitleTextView(attributes);
+                //设置右侧按钮
+                setRightBtn(attributes);
                 break;
             case LAYOUT_TYPE_3:
                 break;
@@ -164,24 +176,10 @@ public class TitleBarHeadView extends FrameLayout implements View.OnClickListene
                 break;
             case LAYOUT_TYPE_1:
             default:
-                //设置后退按钮大小
-                int backWidthHeight = (int) attributes.getDimension(R.styleable.TitleBarHeadView_backImgWidthHeight, -1);
-                if (backWidthHeight > 0) {
-                    ViewGroup.LayoutParams layoutParams = findViewById(R.id.imgBtnBack).getLayoutParams();
-                    if (layoutParams == null) {
-                        layoutParams = new LayoutParams(backWidthHeight, backWidthHeight);
-                    } else {
-                        layoutParams.width = layoutParams.height = backWidthHeight;
-                    }
-                    findViewById(R.id.imgBtnBack).setLayoutParams(layoutParams);
-                }
-                //设置后退按钮颜色
-                int backColor = (int) attributes.getColor(R.styleable.TitleBarHeadView_backImgColor, Color.BLACK);
-                findViewById(R.id.imgBtnBack).getBackground().setTint(backColor);
+                //设置后退按钮样式
+                setBackImgBtn(attributes);
                 //设置标题
-                ((TextView)findViewById(R.id.tvTitle)).setTextColor(attributes.getColor(R.styleable.TitleBarHeadView_titleTextColor, Color.BLACK));
-                ((TextView)findViewById(R.id.tvTitle)).setTextSize(TypedValue.COMPLEX_UNIT_DIP,attributes.getDimensionPixelSize(R.styleable.TitleBarHeadView_titleTextSize, 20));
-                ((TextView)findViewById(R.id.tvTitle)).setText(attributes.getString(R.styleable.TitleBarHeadView_titleText));
+                setTitleTextView(attributes);
                 break;
         }
         //设置背景颜色
@@ -189,14 +187,112 @@ public class TitleBarHeadView extends FrameLayout implements View.OnClickListene
         setBackgroundColor(viewBgColor);
     }
 
+    /**
+     * 设置右侧按钮样式
+     *
+     * @param attributes
+     */
+    private void setRightBtn(TypedArray attributes) {
+        ((Button) findViewById(R.id.btnRight)).setTextColor(attributes.getColor(R.styleable.TitleBarHeadView_rightBtnTextColor, Color.BLACK));
+        ((Button) findViewById(R.id.btnRight)).setTextSize(TypedValue.COMPLEX_UNIT_PX, attributes.getDimensionPixelSize(R.styleable.TitleBarHeadView_rightBtnTextSize, 50));
+        ((Button) findViewById(R.id.btnRight)).setText(attributes.getString(R.styleable.TitleBarHeadView_rightBtnText));
+        //右侧按钮边距
+        findViewById(R.id.btnRight).setPadding(
+                Float.valueOf(attributes.getDimension(R.styleable.TitleBarHeadView_rightBtnLeft, 0)).intValue(),
+                Float.valueOf(attributes.getDimension(R.styleable.TitleBarHeadView_rightBtnTop, 0)).intValue(),
+                Float.valueOf(attributes.getDimension(R.styleable.TitleBarHeadView_rightBtnRight, 0)).intValue(),
+                Float.valueOf(attributes.getDimension(R.styleable.TitleBarHeadView_rightBtnBottom, 0)).intValue()
+        );
+    }
 
-    @Override
-    public void onClick(View v) {
-        int i = v.getId();
-        if (i == R.id.fmBack || i == R.id.imgBtnBack) {
-            //后退按钮
-        } else if (i == R.id.tvTitle) {
-            //标题点击
+    /**
+     * 设置标题样式
+     *
+     * @param attributes
+     */
+    private void setTitleTextView(TypedArray attributes) {
+        ((TextView) findViewById(R.id.tvTitle)).setTextColor(attributes.getColor(R.styleable.TitleBarHeadView_titleTextColor, Color.BLACK));
+        ((TextView) findViewById(R.id.tvTitle)).setTextSize(TypedValue.COMPLEX_UNIT_PX, attributes.getDimensionPixelSize(R.styleable.TitleBarHeadView_titleTextSize, 50));
+        ((TextView) findViewById(R.id.tvTitle)).setText(attributes.getString(R.styleable.TitleBarHeadView_titleText));
+    }
+
+    /**
+     * 设置后退按钮样式
+     *
+     * @param attributes
+     */
+    private void setBackImgBtn(TypedArray attributes) {
+        //设置后退按钮大小
+        backImgWidth = (int) attributes.getDimension(R.styleable.TitleBarHeadView_backImgWidth, -1);
+        backImgheight = (int) attributes.getDimension(R.styleable.TitleBarHeadView_backImgHeight, -1);
+        backImgRes = attributes.getResourceId(R.styleable.TitleBarHeadView_backImgRes, R.mipmap.icon_arrow_left);
+        if (backImgWidth > 0 && backImgheight > 0) {
+            ViewGroup.LayoutParams layoutParams = findViewById(R.id.imgBtnBack).getLayoutParams();
+            if (layoutParams == null) {
+                layoutParams = new LayoutParams(backImgWidth, backImgheight);
+            } else {
+                layoutParams.width = backImgWidth;
+                layoutParams.height = backImgheight;
+            }
+            findViewById(R.id.imgBtnBack).setLayoutParams(layoutParams);
+        }
+        //设置后退按钮颜色
+        backColor = attributes.getColor(R.styleable.TitleBarHeadView_backImgColor, Color.BLACK);
+        //设置背景图片
+        findViewById(R.id.imgBtnBack).setBackgroundResource(backImgRes);
+        //设置背景图片修改颜色
+        findViewById(R.id.imgBtnBack).getBackground().setTint(backColor);
+
+        //后退按钮边距
+        findViewById(R.id.fmBack).setPadding(
+                Float.valueOf(attributes.getDimension(R.styleable.TitleBarHeadView_backImgLeft, 0)).intValue(),
+                Float.valueOf(attributes.getDimension(R.styleable.TitleBarHeadView_backImgTop, 0)).intValue(),
+                Float.valueOf(attributes.getDimension(R.styleable.TitleBarHeadView_backImgRight, 0)).intValue(),
+                Float.valueOf(attributes.getDimension(R.styleable.TitleBarHeadView_backImgBottom, 0)).intValue()
+        );
+        //设置默认点击事件为后退并销毁当前页面
+        setBackClick(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Activity activity = (Activity) getContext();
+                if(activity != null){
+                    activity.onBackPressed();
+                    activity.finish();
+                }
+            }
+        });
+    }
+
+    /**
+     * 设置右侧按钮点击事件
+     *
+     * @param onClickListener
+     */
+    public void setRightBtnClick(OnClickListener onClickListener) {
+        if (findViewById(R.id.btnRight) != null && onClickListener != null) {
+            findViewById(R.id.btnRight).setOnClickListener(onClickListener);
+        }
+    }
+
+    /**
+     * 设置标题点击事件
+     *
+     * @param onClickListener
+     */
+    public void setTitleViewClick(OnClickListener onClickListener) {
+        if (findViewById(R.id.tvTitle) != null && onClickListener != null) {
+            findViewById(R.id.tvTitle).setOnClickListener(onClickListener);
+        }
+    }
+
+    /**
+     * 设置后退按钮点击事件
+     * @param onClickListener
+     */
+    public void setBackClick(OnClickListener onClickListener) {
+        if (findViewById(R.id.fmBack) != null && findViewById(R.id.imgBtnBack) != null && onClickListener != null) {
+            findViewById(R.id.fmBack).setOnClickListener(onClickListener);
+            findViewById(R.id.imgBtnBack).setOnClickListener(onClickListener);
         }
     }
 }
