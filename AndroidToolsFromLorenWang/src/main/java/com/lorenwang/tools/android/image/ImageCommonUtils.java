@@ -5,9 +5,7 @@ import android.util.Base64;
 
 import com.lorenwang.tools.android.LogUtils;
 import com.lorenwang.tools.android.base.CheckUtils;
-
-import java.io.FileInputStream;
-import java.io.IOException;
+import com.lorenwang.tools.android.file.FileOptionsUtils;
 
 /**
  * 创建时间：2018-11-16 上午 10:15:2
@@ -40,26 +38,14 @@ public class ImageCommonUtils {
         if(CheckUtils.getInstance().checkFileOptionsPermisstion(context)
                 && CheckUtils.getInstance().checkFileIsExit(filePath)
                 && CheckUtils.getInstance().checkFileIsImage(filePath)){
-            LogUtils.logI(TAG,"图片文件地址有效性检测成功");
-            FileInputStream fileInputStream = null;
-            String base64Str = null;//base64字符串
-            try {
-                fileInputStream = new FileInputStream(filePath);
-                byte[] bytes = new byte[fileInputStream.read()];
-                fileInputStream.read(bytes);
+            LogUtils.logI(TAG,"图片文件地址有效性检测成功，开始获取文件字节");
+            byte[] bytes = FileOptionsUtils.getInstance().readImageFileGetBytes(context, false, false, filePath);
+            String base64Str = null;
+            if(bytes != null) {
                 base64Str = Base64.encodeToString(bytes, Base64.DEFAULT);
-                LogUtils.logI(TAG,"图片转换成功，转换后数据：" + base64Str);
-            }catch (Exception e){
-                LogUtils.logE(TAG,"图片转换发生异常，异常信息：" + e != null ? e.getMessage() : "");
-            }finally {
-                if(fileInputStream != null){
-                    try {
-                        fileInputStream.close();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                    fileInputStream = null;
-                }
+                LogUtils.logI(TAG, "图片转换成功，转换后数据：" + base64Str);
+            }else {
+                LogUtils.logI(TAG, "图片转换失败,失败原因：文件读取异常");
             }
             return base64Str;
         }else {

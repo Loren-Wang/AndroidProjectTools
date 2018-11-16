@@ -25,7 +25,6 @@ import java.io.File;
 public class CheckUtils {
     private final String TAG = getClass().getName();
     private static CheckUtils checkUtils;
-
     public static CheckUtils getInstance() {
         if (checkUtils == null) {
             checkUtils = new CheckUtils();
