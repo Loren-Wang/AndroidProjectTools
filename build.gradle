@@ -20,6 +20,8 @@ allprojects {
         google()
         jcenter()
         maven { url 'https://raw.githubusercontent.com/Loren-Wang/Mavens/master'}
+        //本地路径
+        maven { url 'file:///C:\\Develop\\Project\\Android\\custom\\Mavens'}
     }
 }
 

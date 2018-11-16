@@ -27,6 +27,8 @@ android {
 dependencies {
     //使用这个引入会只在当前项目或者library中使用（compileOnly）
     compileOnly 'com.lorenwang.tools.android:AndroidToolsFromLorenWang:1.0.0@aar'
+    //使用这个引入会只在当前项目或者library中使用（compileOnly）
+    implementation 'com.lorenwang.anim.android:AndroidAnimFromLorenWang:1.0.1@aar'
     //noinspection GradleCompatible
     compileOnly 'com.android.support:appcompat-v7:27.0.2'
     compileOnly 'com.android.support:design:27.1.1'
