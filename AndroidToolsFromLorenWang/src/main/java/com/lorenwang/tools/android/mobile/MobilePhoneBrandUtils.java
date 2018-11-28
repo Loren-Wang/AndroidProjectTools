@@ -1,7 +1,9 @@
-package com.lorenwang.tools.android;
+package com.lorenwang.tools.android.mobile;
 
 import android.os.Build;
 import android.text.TextUtils;
+
+import com.lorenwang.tools.android.LogUtils;
 
 import java.lang.reflect.Method;
 

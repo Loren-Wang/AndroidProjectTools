@@ -1,5 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.lorenwang.tools.android" >
+    package="com.lorenwang.tools.android">
 
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+
+    <application>
+        <receiver
+            android:name=".desktopShortcut.DesktopShortcutReceiver"
+            android:enabled="true"
+            android:exported="true"></receiver>
+    </application>
+
 </manifest>

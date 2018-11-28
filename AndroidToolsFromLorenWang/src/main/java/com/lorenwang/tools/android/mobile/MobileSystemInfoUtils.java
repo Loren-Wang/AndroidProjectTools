@@ -1,9 +1,10 @@
-package com.lorenwang.tools.android;
+package com.lorenwang.tools.android.mobile;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
+import android.os.Build;
 import android.support.annotation.RequiresPermission;
 import android.telephony.TelephonyManager;
 
@@ -74,6 +75,14 @@ public class MobileSystemInfoUtils {
      */
     public String getDeviceBrand() {
         return android.os.Build.BRAND;
+    }
+
+    /**
+     * 获取手机系统sdk版本号
+     * @return
+     */
+    public int getSystemSdkVersion(){
+        return Build.VERSION.SDK_INT;
     }
 
     /**

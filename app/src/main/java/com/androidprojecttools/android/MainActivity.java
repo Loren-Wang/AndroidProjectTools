@@ -4,7 +4,7 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 
 import com.lorenwang.customviews.android.FancyCoverFlow.FancyCoverFlow;
-import com.lorenwang.tools.android.MobilePhoneBrandUtils;
+import com.lorenwang.tools.android.mobile.MobilePhoneBrandUtils;
 
 public class MainActivity extends AppCompatActivity {
 
