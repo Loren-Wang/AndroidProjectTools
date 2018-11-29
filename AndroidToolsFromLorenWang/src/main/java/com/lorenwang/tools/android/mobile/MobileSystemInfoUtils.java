@@ -86,6 +86,14 @@ public class MobileSystemInfoUtils {
     }
 
     /**
+     * 获取手机品牌信息
+     * @return
+     */
+    public String getMobileBrand(){
+        return Build.MANUFACTURER;
+    }
+
+    /**
      * 获取手机IMEI(需要“android.permission.READ_PHONE_STATE”权限)
      *
      * @return  手机IMEI
