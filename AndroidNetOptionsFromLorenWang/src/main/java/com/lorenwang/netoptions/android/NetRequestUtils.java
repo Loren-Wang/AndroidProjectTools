@@ -456,7 +456,7 @@ public class NetRequestUtils {
      * @param isFrontRequest 是否是前台的请求
      */
     public void stringRequestForGet(String requestActName, String requestPath
-            , Object object, NetRequestDataCallback networkRequestCallback, boolean isCheckInterval, boolean isFrontRequest){
+            , Object object, NetworkOptionsCallback networkRequestCallback, boolean isCheckInterval, boolean isFrontRequest){
         networkDataRequest(requestActName,requestPath,NETWORK_REQUEST_TYPE_GET,null,object,networkRequestCallback,isCheckInterval,isFrontRequest);
     }
 
@@ -470,7 +470,7 @@ public class NetRequestUtils {
      * @param isFrontRequest 是否是前台的请求
      */
     public void stringRequestForPost(String requestActName, String requestPath, Map<String, Object> map
-            , Object object, NetRequestDataCallback networkRequestCallback, boolean isCheckInterval, boolean isFrontRequest) {
+            , Object object, NetworkOptionsCallback networkRequestCallback, boolean isCheckInterval, boolean isFrontRequest) {
         networkDataRequest(requestActName, requestPath, NETWORK_REQUEST_TYPE_POST, map, object, networkRequestCallback, isCheckInterval, isFrontRequest);
     }
     /**
@@ -483,7 +483,7 @@ public class NetRequestUtils {
      * @param isFrontRequest 是否是前台的请求
      */
     public void stringRequestForPostJson(String requestActName, String requestPath, Map<String, Object> map
-            , Object object, NetRequestDataCallback networkRequestCallback, boolean isCheckInterval, boolean isFrontRequest){
+            , Object object, NetworkOptionsCallback networkRequestCallback, boolean isCheckInterval, boolean isFrontRequest){
         networkDataRequest(requestActName,requestPath,NETWORK_REQUEST_TYPE_POST_JSON,map, object, networkRequestCallback,isCheckInterval,isFrontRequest);
     }
 
@@ -499,7 +499,7 @@ public class NetRequestUtils {
      * @param isFrontRequest 是否是前台的请求
      */
     private void networkDataRequest(String requestActName, final String requestPath, String requestType, final Map<String, Object> paramsMap
-            , final Object object, final NetRequestDataCallback networkRequestCallback, boolean isCheckInterval, boolean isFrontRequest){
+            , final Object object, final NetworkOptionsCallback networkRequestCallback, boolean isCheckInterval, boolean isFrontRequest){
         final String requestRecordDtoKey = getRecordKey(requestActName, requestPath,paramsMap);
         if(requestActName == null){
             requestActName = BuildConfig.APPLICATION_ID;
@@ -612,7 +612,7 @@ public class NetRequestUtils {
     /***********************************文件上传请求****************************************/
 
     public void upLoadFileRequest(final String requestActName, final String requestPath, final Map<String, Object> paramsMap
-            , final Object object, boolean isUpDataOriginalPicture, boolean isFrontRequest, final NetRequestDataCallback networkRequestCallback){
+            , final Object object, boolean isUpDataOriginalPicture, boolean isFrontRequest, final NetworkOptionsCallback networkRequestCallback){
         final String requestRecordDtoKey = getRecordKey(requestActName,requestPath,paramsMap);
 //        //检查网络是否连接
 //        if(!AppCommon.netIsConnection){
@@ -765,7 +765,7 @@ public class NetRequestUtils {
 
     /***********************************文件下载请求****************************************/
     public void downLoadFileRequest(final String requestActName, final String requestPath, final String savePath
-            , final Object object, boolean isUpDataOriginalPicture, boolean isFrontRequest, final NetRequestDataCallback networkRequestCallback){
+            , final Object object, boolean isUpDataOriginalPicture, boolean isFrontRequest, final NetworkOptionsCallback networkRequestCallback){
 //        //检查网络是否连接
 //        if(!AppCommon.netIsConnection){
 //            onNetworkRequestFail(object,NETWORK_DATA_REQUEST_NOT_CONNECTION_NET,networkRequestCallback);
@@ -897,7 +897,7 @@ public class NetRequestUtils {
      * @param networkRequestCallback
      */
     public void downLoadHomeIcon(final String requestActName, final String requestPath, final String saveKey
-            , final Object object, final NetRequestDataCallback networkRequestCallback){
+            , final Object object, final NetworkOptionsCallback networkRequestCallback){
 //        //检查网络是否连接
 //        if(!AppCommon.netIsConnection){
 //            onNetworkRequestFail(object,NETWORK_DATA_REQUEST_NOT_CONNECTION_NET,networkRequestCallback);
@@ -1043,7 +1043,7 @@ public class NetRequestUtils {
      * @param callback 请求回调
      */
     private void onNetworkRequestSuccess(final String requestActName, final Object object, final String requestRecordDtoKey
-            , final String data, final NetRequestDataCallback callback){
+            , final String data, final NetworkOptionsCallback callback){
         final NetworkRequestRecordDto networkRequestRecordDto = requestRecordDtoMap.get(requestRecordDtoKey);
         if(callback != null){
             onNetworkDataRequestSucessRunnable = new Runnable() {
@@ -1069,9 +1069,9 @@ public class NetRequestUtils {
                         if(jsonObject.has("data")){
                             content = jsonObject.getString("data");
                         }
-                        callback.successForJsonData(code,msg,success,content,object);
+//                        callback.successForJsonData(code,msg,success,content,object);
                     }catch (Exception e){
-                        callback.successForData(NETWORK_DATA_SUCCESS,"",true,data,object);
+//                        callback.successForData(NETWORK_DATA_SUCCESS,"",true,data,object);
                     }
                 }
             };
@@ -1089,11 +1089,11 @@ public class NetRequestUtils {
      * @param status 请求状态值
      * @param networkRequestCallback 请求回调
      */
-    private void onNetworkRequestError(final Object object, final Integer statusCode, final String status, final NetRequestDataCallback networkRequestCallback){
+    private void onNetworkRequestError(final Object object, final Integer statusCode, final String status, final NetworkOptionsCallback networkRequestCallback){
         if (networkRequestCallback != null) {
             onNetworkDataRequestErrorRunnable = new Runnable() {
                 public void run() {
-                    networkRequestCallback.error(statusCode,status,object);
+//                    networkRequestCallback.error(statusCode,status,object);
                 }
             };
             postMainRunnable(onNetworkDataRequestErrorRunnable,null);
@@ -1105,11 +1105,11 @@ public class NetRequestUtils {
      * @param failCase 失败原因
      * @param networkRequestCallback 请求回调
      */
-    private void onNetworkRequestFail(final Object object, final int failCase, final NetRequestDataCallback networkRequestCallback){
+    private void onNetworkRequestFail(final Object object, final int failCase, final NetworkOptionsCallback networkRequestCallback){
         if (null != networkRequestCallback) {
             onNetworkDataRequestFailRunnable = new Runnable() {
                 public void run() {
-                    networkRequestCallback.fail(failCase,"",object);
+//                    networkRequestCallback.fail(failCase,"",object);
                 }
             };
             postMainRunnable(onNetworkDataRequestFailRunnable,null);
@@ -1123,7 +1123,7 @@ public class NetRequestUtils {
      * @param networkRequestCallback
      */
     private void onNetworkFileRequestProgress(final String filePath, final Object object, final int progress
-            , final NetRequestDataCallback networkRequestCallback){
+            , final NetworkOptionsCallback networkRequestCallback){
         if (null != networkRequestCallback) {
             onNetworkFileRequestProgressRunnable = new Runnable() {
                 public void run() {
