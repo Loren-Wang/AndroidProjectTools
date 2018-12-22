@@ -1,10 +1,12 @@
-package com.lorenwang.tools.android;
+package com.lorenwang.tools.android.base;
 
 import android.util.Log;
 
+import com.lorenwang.tools.android.BuildConfig;
+
 /**
  * 日志工具类
- * 
+ *
  */
 public final class LogUtils {
 

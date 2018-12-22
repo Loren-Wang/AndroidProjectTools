@@ -6,7 +6,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.RequiresApi;
 
-import com.lorenwang.tools.android.LogUtils;
+import com.lorenwang.tools.android.base.LogUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;

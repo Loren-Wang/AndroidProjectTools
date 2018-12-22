@@ -9,7 +9,7 @@ android {
         minSdkVersion 14
         targetSdkVersion 28
         versionCode 1
-        versionName "1.0.0"
+        versionName "1.0.1"
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
 
@@ -35,7 +35,7 @@ dependencies {
     //第三方网络请求框架
     implementation 'com.squareup.okhttp3:okhttp-urlconnection:3.11.0'
     //安卓工具类
-    compileOnly 'com.lorenwang.tools.android:AndroidToolsFromLorenWang:1.1.1@aar'
+    compileOnly 'com.lorenwang.tools.android:AndroidToolsFromLorenWang:1.1.2@aar'
     //数据格式化工具类
     compileOnly 'com.lorenwang.dataparse.android:AndroidDataParseFromLorenWang:1.0.0@aar'
 }

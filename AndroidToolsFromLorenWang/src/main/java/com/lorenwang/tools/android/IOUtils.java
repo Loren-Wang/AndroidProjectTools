@@ -4,6 +4,8 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.util.Xml;
 
+import com.lorenwang.tools.android.base.LogUtils;
+
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -15,9 +17,9 @@ import java.io.UnsupportedEncodingException;
 
 /**
  * IO操作工具类
- * 
+ *
  * @author yynie
- * 
+ *
  */
 public final class IOUtils {
 	private static final String TAG = IOUtils.class.getName();

@@ -2,14 +2,10 @@ package com.lorenwang.tools.android;
 
 import android.Manifest;
 import android.app.Activity;
-import android.app.ActivityManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
-import android.location.LocationManager;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Vibrator;
@@ -19,16 +15,15 @@ import android.support.v4.content.ContextCompat;
 import android.support.v4.content.FileProvider;
 import android.support.v4.content.PermissionChecker;
 
-import java.io.File;
-import java.util.List;
-import java.util.UUID;
+import com.lorenwang.tools.android.base.LogUtils;
 
-import static android.content.Context.ACTIVITY_SERVICE;
+import java.io.File;
+import java.util.UUID;
 
 
 /**
  * 应用工具类
- * 
+ *
  * @author yynie
  * @since 2013-09-23
  */
@@ -36,58 +31,6 @@ public final class AppUtils {
 
 	private static final String TAG = "AppUtils";
 
-	/**
-	 * 判断GPS是否开启，GPS或者AGPS开启一个就认为是开启的
-	 * @return true 表示开启
-	 */
-	public static boolean checkGpsIsOpen(Context context) {
-		LocationManager locationManager
-				= (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
-		// 通过GPS卫星定位，定位级别可以精确到街（通过24颗卫星定位，在室外和空旷的地方定位准确、速度快）
-		boolean gps = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
-		// 通过WLAN或移动网络(3G/2G)确定的位置（也称作AGPS，辅助GPS定位。主要用于在室内或遮盖物（建筑群或茂密的深林等）密集的地方定位）
-//		boolean network = locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
-		if (gps) {
-			return true;
-		}
-		return false;
-	}
-
-
-	/**
-	 * 获取当前网络类型
-	 * @return 0：没有网络   1：WIFI网络   2：WAP网络    3：NET网络
-	 */
-	@RequiresPermission(Manifest.permission.ACCESS_NETWORK_STATE)
-	public static int getNetworkType(Context context) {
-		int netType = 0;
-		String netTypeName = null;
-		ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
-		NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
-		if (networkInfo == null) {
-			return netType;
-		}
-
-
-		int nType = networkInfo.getType();
-		if (nType == ConnectivityManager.TYPE_MOBILE) {
-			String extraInfo = networkInfo.getExtraInfo();
-			if(extraInfo != null) {
-				if (extraInfo.toLowerCase().equals("cmnet")) {
-					netType = 3;
-					netTypeName = "cmNet";
-				} else {
-					netType = 2;
-					netTypeName = "cmWap";
-				}
-			}
-		} else if (nType == ConnectivityManager.TYPE_WIFI) {
-			netType = 1;
-			netTypeName = "wifi";
-		}
-
-		return netType;
-	}
 
 	/*uuid产生器*/
 	public static String generateUuid(){
@@ -95,57 +38,10 @@ public final class AppUtils {
 		return uuid ;
 	}
 
-	/**
-	 * 程序是否已经安装
-	 * @param pkgName
-	 * @return
-	 */
-	public static boolean isInstalled(Context context,String pkgName) {
-		try {
-			context.getApplicationContext().getPackageManager().getApplicationInfo(pkgName, PackageManager.GET_META_DATA);
-			return true;
-		} catch (Exception e) {
-			return false;
-		}
-	}
 
-	/**
-	 * 判断app是否在运行
-	 * @param context
-	 * @param packName
-	 * @return
-	 */
-	public static boolean isAppRunning(Context context,String packName){
-		ActivityManager am = (ActivityManager)context.getSystemService(Context.ACTIVITY_SERVICE);
-		List<ActivityManager.RunningTaskInfo> list = am.getRunningTasks(100);
-		boolean isAppRunning = false;
-		for (ActivityManager.RunningTaskInfo info : list) {
-			if (info.topActivity.getPackageName().equals(packName) || info.baseActivity.getPackageName().equals(packName)) {
-				isAppRunning = true;
-				break;
-			}
-		}
-		return isAppRunning;
-	}
 
-	/**
-	 * 判断一个服务是否在后台运行
-	 * @param context
-	 * @param judgeService
-	 * @return
-	 */
-	public static<T> boolean isServiceRunning(Context context, Class<T> judgeService) {
-		if(context == null){
-			return false;
-		}
-		ActivityManager manager = (ActivityManager) context.getApplicationContext().getSystemService(ACTIVITY_SERVICE);
-		for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
-			if (judgeService.getName().equals(service.service.getClassName())) {
-				return true;
-			}
-		}
-		return false;
-	}
+
+
 
 	/**
 	 * 安装应用
@@ -161,8 +57,8 @@ public final class AppUtils {
 
 	/**
 	 * 获取App安装的intent
-	 * @param context
-	 * @param installAppFilePath
+	 * @param context s上下文
+	 * @param installAppFilePath 安卓文件地址
 	 * @param authority The authority of a {@link FileProvider} defined in a
 	 *            {@code <provider>} element in your app's manifest.
 	 * @return

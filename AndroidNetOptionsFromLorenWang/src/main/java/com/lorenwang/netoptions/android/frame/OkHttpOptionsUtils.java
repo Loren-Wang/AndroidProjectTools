@@ -1,14 +1,18 @@
 package com.lorenwang.netoptions.android.frame;
 
 import android.support.annotation.NonNull;
+import android.text.TextUtils;
 
 import com.lorenwang.dataparse.android.JsonUtils;
 import com.lorenwang.netoptions.android.BuildConfig;
 import com.lorenwang.netoptions.android.NetworkOptionsCallback;
 import com.lorenwang.netoptions.android.NetworkOptionsRecordDto;
-import com.lorenwang.tools.android.LogUtils;
+import com.lorenwang.tools.android.base.LogUtils;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.Iterator;
@@ -31,7 +35,9 @@ import okhttp3.Request;
 import okhttp3.Response;
 
 import static com.lorenwang.netoptions.android.NetworkOptionsConstant.NETWORK_DATA_REQUEST_ERROR;
+import static com.lorenwang.netoptions.android.NetworkOptionsConstant.NETWORK_DATA_REQUEST_ERROR_TYPE_DOWN_ERROR;
 import static com.lorenwang.netoptions.android.NetworkOptionsConstant.NETWORK_DATA_REQUEST_FAIL_CASE_REQUEST_FAIL;
+import static com.lorenwang.netoptions.android.NetworkOptionsConstant.NETWORK_REQUEST_FOR_DOWN_LOAD_FILE;
 import static com.lorenwang.netoptions.android.NetworkOptionsConstant.NETWORK_REQUEST_FOR_GET;
 import static com.lorenwang.netoptions.android.NetworkOptionsConstant.NETWORK_REQUEST_FOR_POST;
 import static com.lorenwang.netoptions.android.NetworkOptionsConstant.NETWORK_REQUEST_FOR_POST_JSON;
@@ -121,18 +127,18 @@ public class OkHttpOptionsUtils extends BaseNetworkOptions {
                     .writeTimeout(timeOut, TimeUnit.MILLISECONDS)
                     .readTimeout(timeOut, TimeUnit.MILLISECONDS);
 
-            if(trustManager == null || sslSocketFactory == null) {
+            if (trustManager == null || sslSocketFactory == null) {
                 //设置请求头
                 okHttpClient = builder.build();
-            }else {
+            } else {
                 //设置请求头
                 okHttpClient = builder
-                        .sslSocketFactory(sslSocketFactory,trustManager)
+                        .sslSocketFactory(sslSocketFactory, trustManager)
                         .build();
             }
 
-        }catch (Exception e){
-            LogUtils.logD(TAG,"超时时间及请求头设置失败");
+        } catch (Exception e) {
+            LogUtils.logD(TAG, "超时时间及请求头设置失败");
             okHttpClient = new OkHttpClient();
         }
     }
@@ -182,43 +188,44 @@ public class OkHttpOptionsUtils extends BaseNetworkOptions {
     @Override
     public void stringRequestForGet(String requestActName, String requestPath, Object object
             , NetworkOptionsCallback networkRequestCallback, boolean isCheckInterval, boolean isFrontRequest) {
-        networkDataRequest(requestActName,requestPath, NETWORK_REQUEST_FOR_GET,null,object,networkRequestCallback,isCheckInterval,isFrontRequest);
+        networkDataRequest(requestActName, requestPath, NETWORK_REQUEST_FOR_GET, null, object, networkRequestCallback, isCheckInterval, isFrontRequest);
     }
 
     /**
      * 网路请求综合
-     * @param requestActName 请求上下文
-     * @param requestPath 请求网址
-     * @param requestType 请求类型，get or post
-     * @param paramsMap post请求集合
+     *
+     * @param requestActName         请求上下文
+     * @param requestPath            请求网址
+     * @param requestType            请求类型，get or post
+     * @param paramsMap              post请求集合
      * @param object
      * @param networkRequestCallback 请求回调
-     * @param isCheckInterval 是否检查忽略时间，检查忽略时间的前提是要已经有请求过的数据
-     * @param isFrontRequest 是否是前台的请求
+     * @param isCheckInterval        是否检查忽略时间，检查忽略时间的前提是要已经有请求过的数据
+     * @param isFrontRequest         是否是前台的请求
      */
     private void networkDataRequest(String requestActName, final String requestPath, String requestType, final Map<String, Object> paramsMap
-            , final Object object, final NetworkOptionsCallback networkRequestCallback, boolean isCheckInterval, boolean isFrontRequest){
-        final String requestRecordDtoKey = getRecordKey(requestActName, requestPath,paramsMap);
-        if(requestActName == null){
+            , final Object object, final NetworkOptionsCallback networkRequestCallback, boolean isCheckInterval, boolean isFrontRequest) {
+        final String requestRecordDtoKey = getRecordKey(requestActName, requestPath, paramsMap);
+        if (requestActName == null) {
             requestActName = BuildConfig.APPLICATION_ID;
         }
-        if(!checkAllInfo(requestPath,requestRecordDtoKey,isCheckInterval,networkRequestCallback)){
+        if (!checkAllInfo(requestPath, requestRecordDtoKey, isCheckInterval, networkRequestCallback)) {
             return;
         }
 
         //构造网络请求
         Request request = null;
-        switch (requestType){
+        switch (requestType) {
             case NETWORK_REQUEST_FOR_GET:
                 request = new Request.Builder().url(requestPath).build();
                 break;
             case NETWORK_REQUEST_FOR_POST:
-                if(paramsMap != null){
+                if (paramsMap != null) {
                     //创建请求的参数body
                     FormBody.Builder builder = new FormBody.Builder();
                     for (Map.Entry<String, Object> entry : paramsMap.entrySet()) {
-                        if(entry.getKey() != null && entry.getValue() != null
-                                && !"".equals(entry.getKey()) && !"".equals(entry.getValue())){
+                        if (entry.getKey() != null && entry.getValue() != null
+                                && !"".equals(entry.getKey()) && !"".equals(entry.getValue())) {
                             builder.add(entry.getKey(), String.valueOf(entry.getValue()));
                         }
                     }
@@ -226,7 +233,7 @@ public class OkHttpOptionsUtils extends BaseNetworkOptions {
                 }
                 break;
             case NETWORK_REQUEST_FOR_POST_JSON:
-                if(paramsMap != null){
+                if (paramsMap != null) {
                     request = new Request.Builder().url(requestPath)
                             .post(FormBody.create(MediaType.parse("application/json; charset=utf-8"), JsonUtils.toJson(paramsMap))).build();
                 }
@@ -236,38 +243,38 @@ public class OkHttpOptionsUtils extends BaseNetworkOptions {
         }
 
 
-
-        if(request != null){
+        if (request != null) {
             Call call = okHttpClient.newCall(request);
             //记录网络请求
-            recordNetworkRequest(requestActName,requestRecordDtoKey, requestPath, requestType, paramsMap, networkRequestCallback, isFrontRequest, call);
+            recordNetworkRequest(requestActName, requestRecordDtoKey, requestPath, requestType, paramsMap, networkRequestCallback, isFrontRequest, call);
             final String finalRequestActName = requestActName;
             call.enqueue(new Callback() {
                 @Override
                 public void onFailure(Call call, IOException e) {
                     finishRequestAfterRecord(call);//完成网络请求后对于记录的修改
-                    if(!call.isCanceled()) {
+                    if (!call.isCanceled()) {
                         if (e != null && e.getMessage() != null) {
                             LogUtils.logD(TAG, e.getMessage());
                             e.printStackTrace();
                         }
-                        onNetworkRequestFail(object,NETWORK_DATA_REQUEST_FAIL_CASE_REQUEST_FAIL, networkRequestCallback);
+                        onNetworkRequestFail(object, NETWORK_DATA_REQUEST_FAIL_CASE_REQUEST_FAIL, networkRequestCallback);
                     }
                 }
+
                 @Override
                 public void onResponse(Call call, Response response) throws IOException {
                     finishRequestAfterRecord(call);//完成网络请求后对于记录的修改
-                    if(!call.isCanceled()) {
+                    if (!call.isCanceled()) {
                         try {
                             LogUtils.logD(TAG, response.toString());
                             if (response.isSuccessful()) {
-                                onNetworkRequestSuccess(finalRequestActName,object,requestRecordDtoKey
+                                onNetworkRequestSuccess(finalRequestActName, object, requestRecordDtoKey
                                         , new String(response.body().string().getBytes(), dataEncoding), networkRequestCallback);
                             } else {
-                                onNetworkRequestError(object,NETWORK_DATA_REQUEST_ERROR,networkRequestCallback);
+                                onNetworkRequestError(object, NETWORK_DATA_REQUEST_ERROR, networkRequestCallback);
                             }
                         } catch (Exception e) {
-                            onNetworkRequestError(object,NETWORK_DATA_REQUEST_ERROR,networkRequestCallback);
+                            onNetworkRequestError(object, NETWORK_DATA_REQUEST_ERROR, networkRequestCallback);
                         }
                     }
                 }
@@ -284,5 +291,118 @@ public class OkHttpOptionsUtils extends BaseNetworkOptions {
                 }
             });
         }
+    }
+
+    @Override
+    public void downLoadFileRequest(String requestActName, final String requestPath, final String savePath
+            , final Object object, boolean isFrontRequest, final NetworkOptionsCallback networkRequestCallback) {
+        final String requestRecordDtoKey = getRecordKey(requestActName, requestPath, null);
+        if (requestActName == null) {
+            requestActName = BuildConfig.APPLICATION_ID;
+        }
+        //判断保存地址是否为空
+        if (TextUtils.isEmpty(savePath)) {
+            return;
+        }
+        if (!checkAllInfo(requestPath, requestRecordDtoKey, false, networkRequestCallback)) {
+            return;
+        }
+        //开启下载
+        Request request = new Request.Builder().url(requestPath).build();
+        Call call = okHttpClient.newCall(request);
+        //记录网络请求
+        recordNetworkRequest(requestActName, requestRecordDtoKey, requestPath, NETWORK_REQUEST_FOR_DOWN_LOAD_FILE, null, networkRequestCallback, isFrontRequest, call);
+        final String finalRequestActName = requestActName;
+        call.enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                finishRequestAfterRecord(call);//完成网络请求后对于记录的修改
+                if (!call.isCanceled()) {
+                    if (e != null && e.getMessage() != null) {
+                        LogUtils.logD(TAG, savePath + "文件下载失败  :" + e.getMessage());
+                        e.printStackTrace();
+                    }
+                    onNetworkRequestFail(null, NETWORK_DATA_REQUEST_FAIL_CASE_REQUEST_FAIL, networkRequestCallback);
+                }
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                finishRequestAfterRecord(call);//完成网络请求后对于记录的修改
+                if (!call.isCanceled()) {
+                    try {
+                        LogUtils.logD(TAG, response.toString());
+                        if (response.isSuccessful()) {
+                            saveFile(response);
+                        } else {
+                            onNetworkRequestError(object, NETWORK_DATA_REQUEST_ERROR, networkRequestCallback);
+                        }
+                    } catch (Exception e) {
+                        onNetworkRequestError(object, NETWORK_DATA_REQUEST_ERROR, networkRequestCallback);
+                    }
+                }
+
+            }
+
+            /**
+             * 保存文件
+             * @param response
+             */
+            private void saveFile(Response response) {
+                InputStream is = null;
+                byte[] buf = new byte[2048];
+                int len = 0;
+                FileOutputStream fos = null;
+                try {
+                    is = response.body().byteStream();
+                    long total = response.body().contentLength();
+                    File file = new File(savePath);
+                    if (!file.getParentFile().exists()) {
+                        file.getParentFile().mkdirs();
+                    }
+                    fos = new FileOutputStream(file);
+                    long sum = 0;
+                    while ((len = is.read(buf)) != -1) {
+                        fos.write(buf, 0, len);
+                        sum += len;
+                        int progress = (int) (sum * 1.0f / total * 100);
+                        onNetworkFileRequestProgress(requestPath, object, progress, networkRequestCallback);
+                        fos.flush();
+                    }
+                    LogUtils.logD(TAG, savePath + "文件下载成功");
+                    if (file.exists()) {
+                        file = null;
+                        onNetworkRequestSuccess(finalRequestActName, object, requestRecordDtoKey, "", networkRequestCallback);
+                    } else {
+                        onNetworkRequestError(object, NETWORK_DATA_REQUEST_ERROR_TYPE_DOWN_ERROR, networkRequestCallback);
+                    }
+                } catch (Exception e) {
+                    LogUtils.logD(TAG, savePath + "文件下载失败  :" + e.getMessage());
+                    onNetworkRequestError(object, NETWORK_DATA_REQUEST_ERROR_TYPE_DOWN_ERROR, networkRequestCallback);
+                } finally {
+                    try {
+                        if (is != null)
+                            is.close();
+                    } catch (IOException e) {
+                    }
+                    try {
+                        if (fos != null)
+                            fos.close();
+                    } catch (IOException e) {
+                    }
+                }
+            }
+
+            /**
+             * 完成网络请求后对于记录的修改
+             * @param call
+             */
+            private void finishRequestAfterRecord(Call call) {
+                NetworkOptionsRecordDto networkRequestRecordDto = requestRecordDtoMap.get(requestRecordDtoKey);
+                networkRequestRecordDto.isRequestFinish = true;
+                networkRequestRecordDto.requestUtil = call;
+                requestRecordDtoMap.put(requestRecordDtoKey, networkRequestRecordDto);
+            }
+        });
     }
 }

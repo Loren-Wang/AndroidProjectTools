@@ -1,13 +1,15 @@
 package com.lorenwang.netoptions.android.frame;
 
+import android.Manifest;
 import android.os.Handler;
 import android.os.Looper;
 import android.support.annotation.NonNull;
+import android.support.annotation.RequiresPermission;
 
 import com.lorenwang.netoptions.android.NetworkOptionsCallback;
 import com.lorenwang.netoptions.android.NetworkOptionsRecordDto;
-import com.lorenwang.tools.android.LogUtils;
 import com.lorenwang.tools.android.ParamsAndJudgeUtils;
+import com.lorenwang.tools.android.base.LogUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -61,6 +63,7 @@ public abstract class BaseNetworkOptions {
 
     /**
      * 基类初始化
+     *
      * @param timeOut                    超时时间
      * @param sameRequestUrlPathIntervel 相同网址时间请求间隔
      * @param dataEncoding               响应数据解析格式
@@ -248,7 +251,6 @@ public abstract class BaseNetworkOptions {
 
     /**
      * 网络在请求时失败
-     *
      * @param failCase               失败原因
      * @param networkRequestCallback 请求回调
      */
@@ -260,6 +262,25 @@ public abstract class BaseNetworkOptions {
                 }
             };
             postMainRunnable(onNetworkDataRequestFailRunnable, null);
+        }
+    }
+
+    /**
+     * 文件上传下载进度回调
+     * @param object
+     * @param progress 0-100
+     * @param networkRequestCallback
+     */
+    protected void onNetworkFileRequestProgress(final String filePath, final Object object, final int progress
+            , final NetworkOptionsCallback networkRequestCallback){
+        if (null != networkRequestCallback) {
+            onNetworkFileRequestProgressRunnable = new Runnable() {
+                public void run() {
+                    LogUtils.logD(TAG, "当前文件传输进度:::" + progress);
+                    networkRequestCallback.progress(progress);
+                }
+            };
+            postMainRunnable(onNetworkFileRequestProgressRunnable,null);
         }
     }
 
@@ -289,6 +310,10 @@ public abstract class BaseNetworkOptions {
     }
 
 
+
+    /*******************************************请求处理********************************************/
+
+
     /**
      * 取消某一个请求
      *
@@ -312,16 +337,35 @@ public abstract class BaseNetworkOptions {
      */
     protected abstract void isRecordSaveAlikeRequest(Object requestUtil);
 
+
+    /**********************************************发起请求*****************************************/
+
     /**
      * 字符串get请求
      *
      * @param requestActName         请求的上下文请求名称
      * @param requestPath            请求网址
-     * @param object
+     * @param object                 传递的实体参数
      * @param networkRequestCallback 请求回调
      * @param isCheckInterval        是否检查时间间隔
      * @param isFrontRequest         是否是前台的请求
      */
     public abstract void stringRequestForGet(String requestActName, String requestPath
             , Object object, NetworkOptionsCallback networkRequestCallback, boolean isCheckInterval, boolean isFrontRequest);
+
+    /***********************************文件下载请求****************************************/
+    /**
+     * 下载文件
+     *
+     * @param requestActName         请求的页面名成
+     * @param requestPath            请求地址
+     * @param savePath               保存地址路径
+     * @param object                 传递的实体参数
+     * @param isFrontRequest         是否是前台请求
+     * @param networkRequestCallback 请求回调
+     */
+
+    @RequiresPermission(allOf = {Manifest.permission.WRITE_EXTERNAL_STORAGE,Manifest.permission.READ_EXTERNAL_STORAGE})
+    public abstract void downLoadFileRequest(final String requestActName, final String requestPath, final String savePath
+            , final Object object, boolean isFrontRequest, final NetworkOptionsCallback networkRequestCallback);
 }

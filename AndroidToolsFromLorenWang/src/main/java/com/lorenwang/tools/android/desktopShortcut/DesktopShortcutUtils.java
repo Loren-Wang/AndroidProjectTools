@@ -12,7 +12,7 @@ import android.support.v4.content.pm.ShortcutManagerCompat;
 import android.support.v4.graphics.drawable.IconCompat;
 
 import com.lorenwang.tools.android.AppUtils;
-import com.lorenwang.tools.android.LogUtils;
+import com.lorenwang.tools.android.base.LogUtils;
 import com.lorenwang.tools.android.messageTransmit.FlyMessageUtils;
 
 import static com.lorenwang.tools.android.messageTransmit.FlyMessageMsgTypes.DESKTOP_SHORTCUT_CREATE_SUCCESS;

@@ -3,7 +3,7 @@ package com.lorenwang.tools.android.image;
 import android.content.Context;
 import android.util.Base64;
 
-import com.lorenwang.tools.android.LogUtils;
+import com.lorenwang.tools.android.base.LogUtils;
 import com.lorenwang.tools.android.base.CheckUtils;
 import com.lorenwang.tools.android.file.FileOptionsUtils;
 

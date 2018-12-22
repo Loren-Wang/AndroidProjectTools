@@ -17,7 +17,7 @@ public abstract class NetworkOptionsCallback {
     public abstract void fail(int code, Object object);
     public abstract void error(int code, Object object);
 
-    public void progress(double progress) {
+    public void progress(int progress) {
 
     }
 }

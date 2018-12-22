@@ -1,10 +1,13 @@
 package com.lorenwang.netoptions.android;
 
+import android.Manifest;
 import android.support.annotation.NonNull;
+import android.support.annotation.RequiresPermission;
 import android.text.TextUtils;
 
 import com.lorenwang.netoptions.android.frame.BaseNetworkOptions;
 import com.lorenwang.netoptions.android.frame.OkHttpOptionsUtils;
+import com.lorenwang.tools.android.base.LogUtils;
 
 import java.util.Map;
 
@@ -33,16 +36,19 @@ public class NetworkOptionsUtils extends BaseNetworkOptions {
         }
         return networkOptionsUtils;
     }
+
     /**
      * 基类初始化
      *
+     * @param optionsFrame               操作的框架名称
      * @param timeOut                    超时时间
      * @param sameRequestUrlPathIntervel 相同网址时间请求间隔
      * @param dataEncoding               响应数据解析格式
      * @param reqHeads                   请求头集合
+     * @param isDebug                    是否开启debug
      */
-    public void init(String optionsFrame,Long timeOut, Long sameRequestUrlPathIntervel
-            , String dataEncoding, Map<String, String> reqHeads) {
+    public void init(String optionsFrame, Long timeOut, Long sameRequestUrlPathIntervel
+            , String dataEncoding, Map<String, String> reqHeads, boolean isDebug) {
         //如果请求框架为空则默认使用okhttp框架
         if (TextUtils.isEmpty(optionsFrame)) {
             optionsFrame = "okhttp";
@@ -54,7 +60,9 @@ public class NetworkOptionsUtils extends BaseNetworkOptions {
                 nowNetworkOptions = OkHttpOptionsUtils.getInstance();
                 break;
         }
-        ((OkHttpOptionsUtils) nowNetworkOptions).init(timeOut,sameRequestUrlPathIntervel,dataEncoding,reqHeads);
+        ((OkHttpOptionsUtils) nowNetworkOptions).init(timeOut, sameRequestUrlPathIntervel, dataEncoding, reqHeads);
+        //设置log日志显示模式
+        LogUtils.isDebuggable = isDebug;
     }
 
     /**
@@ -88,5 +96,12 @@ public class NetworkOptionsUtils extends BaseNetworkOptions {
             , NetworkOptionsCallback networkRequestCallback, boolean isCheckInterval, boolean isFrontRequest) {
         nowNetworkOptions.stringRequestForGet(requestActName, requestPath, object, networkRequestCallback
                 , isCheckInterval, isFrontRequest);
+    }
+
+    @Override
+    @RequiresPermission(allOf = {Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE})
+    public void downLoadFileRequest(String requestActName, String requestPath, String savePath, Object object
+            , boolean isFrontRequest, NetworkOptionsCallback networkRequestCallback) {
+        nowNetworkOptions.downLoadFileRequest(requestActName, requestPath, savePath, object, isFrontRequest, networkRequestCallback);
     }
 }

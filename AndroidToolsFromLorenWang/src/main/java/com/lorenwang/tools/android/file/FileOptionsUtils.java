@@ -2,7 +2,7 @@ package com.lorenwang.tools.android.file;
 
 import android.content.Context;
 
-import com.lorenwang.tools.android.LogUtils;
+import com.lorenwang.tools.android.base.LogUtils;
 import com.lorenwang.tools.android.base.CheckUtils;
 
 import java.io.FileInputStream;

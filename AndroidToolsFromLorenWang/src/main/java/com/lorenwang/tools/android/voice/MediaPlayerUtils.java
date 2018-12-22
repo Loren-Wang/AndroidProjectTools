@@ -13,7 +13,7 @@ import android.os.Looper;
 import android.os.Message;
 import android.os.PowerManager;
 
-import com.lorenwang.tools.android.LogUtils;
+import com.lorenwang.tools.android.base.LogUtils;
 
 import java.io.File;
 import java.io.FileInputStream;

@@ -4,6 +4,8 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Build;
 import android.support.annotation.RequiresPermission;
 import android.telephony.TelephonyManager;
@@ -16,7 +18,14 @@ import java.util.Locale;
  * 创建人：王亮（Loren wang）
  * 功能作用：手机系统信息工具类
  * 思路：
- * 方法：
+ * 方法：1、获取当前手机系统语言
+ *      2、获取当前系统上的语言列表(Locale列表)
+ *      3、获取当前手机系统版本号
+ *      4、获取手机型号
+ *      5、获取手机厂商
+ *      6、获取手机系统sdk版本号
+ *      7、获取手机IMEI(需要“android.permission.READ_PHONE_STATE”权限)
+ *      8、获取当前网络类型  return 0：没有网络   1：WIFI网络   2：WAP网络    3：NET网络
  * 注意：
  * 修改人：
  * 修改时间：
@@ -106,6 +115,41 @@ public class MobileSystemInfoUtils {
             return tm.getDeviceId();
         }
         return null;
+    }
+
+    /**
+     * 获取当前网络类型
+     * @return 0：没有网络   1：WIFI网络   2：WAP网络    3：NET网络
+     */
+    @RequiresPermission(Manifest.permission.ACCESS_NETWORK_STATE)
+    public static int getNetworkType(Context context) {
+        int netType = 0;
+        String netTypeName = null;
+        ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
+        if (networkInfo == null) {
+            return netType;
+        }
+
+
+        int nType = networkInfo.getType();
+        if (nType == ConnectivityManager.TYPE_MOBILE) {
+            String extraInfo = networkInfo.getExtraInfo();
+            if(extraInfo != null) {
+                if (extraInfo.toLowerCase().equals("cmnet")) {
+                    netType = 3;
+                    netTypeName = "cmNet";
+                } else {
+                    netType = 2;
+                    netTypeName = "cmWap";
+                }
+            }
+        } else if (nType == ConnectivityManager.TYPE_WIFI) {
+            netType = 1;
+            netTypeName = "wifi";
+        }
+
+        return netType;
     }
 
 

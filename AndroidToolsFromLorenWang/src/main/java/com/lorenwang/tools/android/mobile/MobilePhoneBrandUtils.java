@@ -3,7 +3,7 @@ package com.lorenwang.tools.android.mobile;
 import android.os.Build;
 import android.text.TextUtils;
 
-import com.lorenwang.tools.android.LogUtils;
+import com.lorenwang.tools.android.base.LogUtils;
 
 import java.lang.reflect.Method;
 

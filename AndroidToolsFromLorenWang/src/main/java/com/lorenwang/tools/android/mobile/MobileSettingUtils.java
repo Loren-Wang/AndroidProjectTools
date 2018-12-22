@@ -6,7 +6,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.provider.Settings;
 
-import com.lorenwang.tools.android.LogUtils;
+import com.lorenwang.tools.android.base.LogUtils;
 
 import java.io.BufferedReader;
 import java.io.IOException;
