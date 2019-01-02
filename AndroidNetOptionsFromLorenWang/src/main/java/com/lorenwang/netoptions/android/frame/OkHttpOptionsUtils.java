@@ -381,13 +381,17 @@ public class OkHttpOptionsUtils extends BaseNetworkOptions {
                     onNetworkRequestError(object, NETWORK_DATA_REQUEST_ERROR_TYPE_DOWN_ERROR, networkRequestCallback);
                 } finally {
                     try {
-                        if (is != null)
+                        if (is != null) {
                             is.close();
+                            is = null;
+                        }
                     } catch (IOException e) {
                     }
                     try {
-                        if (fos != null)
+                        if (fos != null) {
                             fos.close();
+                            fos = null;
+                        }
                     } catch (IOException e) {
                     }
                 }

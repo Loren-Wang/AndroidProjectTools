@@ -63,7 +63,7 @@ public final class AppUtils {
 	 *            {@code <provider>} element in your app's manifest.
 	 * @return
 	 */
-	public static Intent getInstallAppIntent(Context context,String authority,String installAppFilePath){
+	public synchronized static Intent getInstallAppIntent(Context context,String authority,String installAppFilePath){
 		try {
 			if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
 				Intent intent = new Intent();

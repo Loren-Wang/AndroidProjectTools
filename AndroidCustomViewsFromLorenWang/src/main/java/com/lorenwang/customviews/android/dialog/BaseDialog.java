@@ -2,6 +2,9 @@ package com.lorenwang.customviews.android.dialog;
 
 import android.app.AlertDialog;
 import android.content.Context;
+import android.support.annotation.LayoutRes;
+import android.support.annotation.StyleRes;
+import android.view.LayoutInflater;
 import android.view.View;
 
 /**
@@ -24,6 +27,16 @@ public class BaseDialog extends AlertDialog {
 
     protected BaseDialog(Context context, int style) {
         super(context,style);
+    }
+
+    public BaseDialog(Context context, @LayoutRes int dialogViewLayoutResId
+            ,@StyleRes int modelStyleResId,@StyleRes int dialogAnimo, boolean isOutSideCancel) {
+        super(context,modelStyleResId);
+        view = LayoutInflater.from(context).inflate(dialogViewLayoutResId,null);
+        new Builder(context,modelStyleResId).create();
+        setView(view);
+        setCanceledOnTouchOutside(isOutSideCancel);
+        getWindow().setWindowAnimations(dialogAnimo);
     }
 
     /**

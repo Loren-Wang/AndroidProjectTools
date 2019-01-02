@@ -1,7 +1,6 @@
 package com.lorenwang.customviews.android.dialog;
 
 import android.content.Context;
-import android.view.LayoutInflater;
 
 import com.lorenwang.customviews.android.R;
 
@@ -18,12 +17,7 @@ import com.lorenwang.customviews.android.R;
  */
 public class LoadingDialogType1 extends BaseDialog {
     public LoadingDialogType1(Context context) {
-        super(context,R.style.loading_dialog_type1);
-        view = LayoutInflater.from(context).inflate(R.layout.loading_dialog_type_1,null);
-        new Builder(context,R.style.loading_dialog_type1).create();
-        setView(view);
-        setCanceledOnTouchOutside(false);
-        getWindow().setWindowAnimations(R.style.dialog_anim_for_center);
+        super(context,R.layout.loading_dialog_type_1,R.style.loading_dialog_type1,R.style.dialog_anim_for_center,false);
     }
 
     @Override

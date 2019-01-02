@@ -1,14 +1,12 @@
 package com.lorenwang.tools.android.app;
 
 import android.annotation.SuppressLint;
-import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
-import android.os.SystemClock;
 import android.provider.Settings;
 import android.support.annotation.DrawableRes;
 import android.support.annotation.NonNull;
@@ -230,7 +228,7 @@ public class NotificationUtils {
         // 当设置下面PendingIntent.FLAG_UPDATE_CURRENT这个参数的时候，常常使得点击通知栏没效果，你需要给notification设置一个独一无二的requestCode
         // 将Intent封装进PendingIntent中，点击通知的消息后，就会启动对应的程序
         @SuppressLint("WrongConstant")
-        PendingIntent pIntent = PendingIntent.getActivity(context.getApplicationContext(), (int) SystemClock.uptimeMillis(), intent, Notification.FLAG_INSISTENT);
+        PendingIntent pIntent = PendingIntent.getActivity(context.getApplicationContext(),0, intent, 0);
         cBuilder.setContentIntent(pIntent);// 该通知要启动的Intent
 
         //设置在通知栏显示内容
